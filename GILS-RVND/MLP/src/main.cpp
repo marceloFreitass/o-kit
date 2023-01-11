@@ -158,7 +158,7 @@ int binarySearch(int x, int begin, int end, vector<int> CL){
 
 }
 
-Solution Construcao(vector<int>& CL1, Data& adjMatrix){
+Solution Construction(vector<int>& CL1, Data& adjMatrix){
 
     vector<int>CL = CL1; //Getting a copy of original CL
     Solution s = {{1,1}, 0};
@@ -620,7 +620,7 @@ Solution ILS(int maxIter, int maxIterILS, Data& adjMatrix){
     
     for(int i = 0; i < maxIter; i++){
     
-        Solution s = Construcao(CL, adjMatrix);
+        Solution s = Construction(CL, adjMatrix);
         UpdateAllSubseq(&s, subseq_matrix, adjMatrix);
         Solution best = s;
         bestcostAcum = subseq_matrix[0][n].C; 
