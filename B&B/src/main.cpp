@@ -6,7 +6,9 @@ using namespace std;
 #include <vector>
 #include <numeric>
 #include <algorithm>
-#include <list>
+#include <ctime>
+#include <chrono>
+
 
 struct Node{
 
@@ -15,6 +17,10 @@ struct Node{
 	double lowerBound; //objective value of a hungarian resolution
 	int chosen; //index of smaller subtour on subtours vector
 	bool feasible;
+
+	bool operator()(const Node* left, const Node* right){ //Priority queue
+		return left->lowerBound > right->lowerBound;
+	}
 };
 
 void showSubtours(vector<vector<int>> subtours){
@@ -130,7 +136,7 @@ void setForbiddenArcs(Node* node, int dimension, double** cost, double** newCost
 		newCost[node->forbiddenArcs[i].first - 1][node->forbiddenArcs[i].second - 1] = INFINITE;
 	}
 }
-void BB(int dimension, double **cost){
+Node BB(int type, int dimension, double **cost){ //Returns the node with the optimal solution
 
 	Node root, optSolution;
 	
@@ -197,21 +203,26 @@ void BB(int dimension, double **cost){
 
 				hungarian_free(&p);		
 			}
-			
 		}
 	}
-	cout << "Cost: " << optSolution.lowerBound << endl;
+
+	for (int i = 0; i < dimension; i++) delete [] copyCost[i];
+	delete [] copyCost;
+	return optSolution;
 }
 
+void Menu(){
+
+	cout << "Select the branch estrategy!\n\n";
+	cout << "1 - Depth\n";
+	cout << "2 - Breadth\n";
+	cout << "3 - Best bound\n\n";
+}
 
 int main(int argc, char** argv) {
-
-	vector<vector<int>> Subtours;
 	
-
 	Data * data = new Data(argc, argv[1]);
 	data->readData();
-
 	double **cost = new double*[data->getDimension()];
 	for (int i = 0; i < data->getDimension(); i++){
 		cost[i] = new double[data->getDimension()];
@@ -220,10 +231,25 @@ int main(int argc, char** argv) {
 		}
 	}
 	
+	Node bestNode;
+	int type;
 
-	
-	BB(data->getDimension(), cost);
+	Menu();
+	cin >> type;
 
+	while(type < 1 || type > 3){
+		cout << "Invalid option!\n";
+		cin >> type;
+	}
+
+	auto begin = chrono::high_resolution_clock::now(); 
+	bestNode = BB(type, data->getDimension(), cost);
+	auto end = chrono::high_resolution_clock::now();
+
+	auto time = chrono::duration_cast<chrono::milliseconds>(end - begin);
+
+	cout << "Cost: " << bestNode.lowerBound << endl;
+	cout << "Time: " << time.count()/1000.0 << endl;
 	
 	for (int i = 0; i < data->getDimension(); i++) delete [] cost[i];
 	delete [] cost;
