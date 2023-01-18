@@ -8,7 +8,7 @@ using namespace std;
 #include <algorithm>
 #include <ctime>
 #include <chrono>
-
+#include <queue>
 
 struct Node{
 
@@ -18,10 +18,12 @@ struct Node{
 	int chosen; //index of smaller subtour on subtours vector
 	bool feasible;
 
-	bool operator()(const Node* left, const Node* right){ //Priority queue
-		return left->lowerBound > right->lowerBound;
-	}
+	
 };
+
+bool operator< (const Node& left, const Node& right){ //Priority queue
+		return left.lowerBound > right.lowerBound;
+	}
 
 void showSubtours(vector<vector<int>> subtours){
 
@@ -139,7 +141,8 @@ void setForbiddenArcs(Node* node, int dimension, double** cost, double** newCost
 Node BB(int type, int dimension, double **cost){ //Returns the node with the optimal solution
 
 	Node root, optSolution;
-	
+	vector<Node> tree;
+	priority_queue<Node> bestBoundTree;
 	double upperBound = INFINITE;
 	double lowerBound;
 
@@ -159,14 +162,36 @@ Node BB(int type, int dimension, double **cost){ //Returns the node with the opt
 	optSolution = root;
 	hungarian_free(&p);
 
-	vector<Node> tree;
-	tree.push_back(root);
 
-	while(!tree.empty()){
-		//Profundidade
+	
+	if(type <= 2){
+		tree.push_back(root);
+	}
+	else{
+		bestBoundTree.push(root);
+	}
+	
+
+	while(!tree.empty() || !bestBoundTree.empty()){
+		Node currentNode;
+		//Depth
 		//Choosing and erasing the last node
-		Node currentNode = tree.back();
-		tree.erase(tree.end()); 
+		if(type == 1){
+			currentNode = tree.back();
+			tree.erase(tree.end()); 
+		}
+		//Breadth
+		//Chosing and erasing the first node
+		else if(type == 2){
+			currentNode = tree.front();
+			tree.erase(tree.begin());
+		}
+		//Best bound
+		//Chosing and erasing the node with highest lower bound
+		else{
+			currentNode = bestBoundTree.top();
+			bestBoundTree.pop();
+		}
 
 		if(currentNode.feasible){ //If finds a feasible solution, checks if your LB <= UB, if so, thats the new UB
 			//And thats the optimal solution
@@ -198,7 +223,13 @@ Node BB(int type, int dimension, double **cost){ //Returns the node with the opt
 					newNode.feasible = (newNode.subtours.size() == 1);
 					newNode.chosen = smallerSubtour(newNode.subtours);
 					
-					tree.push_back(newNode);
+					if(type <= 2){
+						tree.push_back(newNode);
+					}
+					else{
+						bestBoundTree.push(newNode);
+					}
+					
 				}
 
 				hungarian_free(&p);		
