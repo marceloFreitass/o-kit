@@ -1,0 +1,9 @@
+bayg29.tsp:1610
+bays29.tsp:2020
+burma14.tsp:3323
+fri26.tsp:937
+gr17.tsp:2085
+gr21.tsp:2707
+gr24.tsp:1272
+ulysses16.tsp:6859
+ulysses22.tsp:7013

@@ -1,6 +1,4 @@
 #include <iostream>
-using namespace std;
-
 #include "Data.h"
 #include "hungarian.h"
 #include <vector>
@@ -9,7 +7,27 @@ using namespace std;
 #include <ctime>
 #include <chrono>
 #include <queue>
+#include <fstream>
 
+using namespace std;
+
+int getOptCost(std::string instanceName){ //Getting the cost from ILS heuristic
+
+	std::string path = "ILS.txt";
+	string word = instanceName;
+    std::string line;
+    ifstream inTSP(path);
+
+    while(getline(inTSP, line)){
+		size_t pos = line.find(word, 0);
+
+		if(pos != string::npos){
+			line = line.substr(line.find(":") + 1);
+			return stoi(line);
+		}
+	}
+	return -1;
+}
 struct Node{
 
 	vector<pair<int, int>> forbiddenArcs;
@@ -18,7 +36,6 @@ struct Node{
 	int chosen; //index of smaller subtour on subtours vector
 	bool feasible;
 
-	
 };
 
 bool operator< (const Node& left, const Node& right){ //Priority queue
@@ -41,6 +58,7 @@ void showSubtours(vector<vector<int>> subtours){
 		cout << endl;
 	}
 }
+
 vector<vector<int>> getSubtours(hungarian_problem_t pointer){
 	vector<vector<int>> totalSubtours;
 	vector<int> subtour;
@@ -138,14 +156,13 @@ void setForbiddenArcs(Node* node, int dimension, double** cost, double** newCost
 		newCost[node->forbiddenArcs[i].first - 1][node->forbiddenArcs[i].second - 1] = INFINITE;
 	}
 }
-Node BB(int type, int dimension, double **cost){ //Returns the node with the optimal solution
+Node BB(int type, int dimension, double **cost, int optCost){ //Returns the node with the optimal solution
 
 	Node root, optSolution;
 	vector<Node> tree;
 	priority_queue<Node> bestBoundTree;
-	double upperBound = INFINITE;
+	double upperBound = optCost + 1	; //UB starts with optCost from ILS +1
 	double lowerBound;
-
 	hungarian_problem_t p = getMatrixSolutionHungarian(dimension, cost, lowerBound);
 	double **copyCost = new double*[dimension];
 	for(int i = 0; i < dimension; i++){
@@ -161,16 +178,12 @@ Node BB(int type, int dimension, double **cost){ //Returns the node with the opt
 	root.chosen = smallerSubtour(root.subtours);
 	optSolution = root;
 	hungarian_free(&p);
-
-
-	
 	if(type <= 2){
 		tree.push_back(root);
 	}
 	else{
 		bestBoundTree.push(root);
 	}
-	
 
 	while(!tree.empty() || !bestBoundTree.empty()){
 		Node currentNode;
@@ -184,7 +197,7 @@ Node BB(int type, int dimension, double **cost){ //Returns the node with the opt
 		//Chosing and erasing the first node
 		else if(type == 2){
 			currentNode = tree.front();
-			tree.erase(tree.begin());
+			
 		}
 		//Best bound
 		//Chosing and erasing the node with highest lower bound
@@ -235,6 +248,11 @@ Node BB(int type, int dimension, double **cost){ //Returns the node with the opt
 				hungarian_free(&p);		
 			}
 		}
+		if(type == 2){
+			tree.erase(tree.begin());
+		}
+	
+		
 	}
 
 	for (int i = 0; i < dimension; i++) delete [] copyCost[i];
@@ -262,6 +280,10 @@ int main(int argc, char** argv) {
 		}
 	}
 	
+	string instance = data->getInstanceName();
+	instance = instance.substr(instance.rfind('\\') + 1); //Getting the instance name
+	int optCost = getOptCost(instance);
+
 	Node bestNode;
 	int type;
 
@@ -272,9 +294,8 @@ int main(int argc, char** argv) {
 		cout << "Invalid option!\n";
 		cin >> type;
 	}
-
 	auto begin = chrono::high_resolution_clock::now(); 
-	bestNode = BB(type, data->getDimension(), cost);
+	bestNode = BB(type, data->getDimension(), cost, optCost);
 	auto end = chrono::high_resolution_clock::now();
 
 	auto time = chrono::duration_cast<chrono::milliseconds>(end - begin);
