@@ -1,5 +1,9 @@
 #include "Kruskal.h"
 
+Kruskal::Kruskal(){
+	;
+}
+
 Kruskal::Kruskal(vvi dist){
 	for(int i = 0; i < dist.size(); ++i){
 		for(int j = 0; j < dist[i].size(); ++j){
@@ -64,30 +68,22 @@ vector<vector<int>> Kruskal::getSolution(int size){
 
 double Kruskal::oneMST(vvi dist, int nodes){
 	initDisjoint(nodes);
-	//DA pra otimizar, inves de pegar a copia do graph, ja fazer o fakegraph direto e dps ajustar os custos para pegar o original
 	double cost = 0;
 	priority_queue <pair<double,ii>> fakeGraph;
-	priority_queue <pair<double,ii>> temp = graph;
+	priority_queue <pair<double,ii>> vertice0costs;
+	//getting the MST "without" vertex 0 because its costs is INFINITE
+
 	for(int i = 0; i < dist.size(); ++i){
 		for(int j = 0; j < dist[i].size(); ++j){
 			if(i == 0 || j == 0){
 				fakeGraph.push( make_pair(-INFINITE, make_pair(i, j)));
+				vertice0costs.push( make_pair(-dist[i][j], make_pair(i, j)));
 				continue;
 			}
 			fakeGraph.push( make_pair(-dist[i][j], make_pair(i, j)) );
 		}	
 	}
 	
-	vector <pair<double,ii>> vertice0costs;
-	while(!temp.empty()){
-
-		pair<double, ii> p = temp.top();
-		if(p.second.first == 0 || p.second.second == 0){
-			vertice0costs.push_back(p);
-		}
-		
-		temp.pop();
-	}
 	
 		while(!fakeGraph.empty()){
 			pair<double, ii> p = fakeGraph.top();
@@ -99,13 +95,16 @@ double Kruskal::oneMST(vvi dist, int nodes){
 				unionSet(p.second.first, p.second.second);
 		}
 	}
-	
+	//removing the only one edge with vertex 0 with infinite cost and plugging the two cheapests vertex 0 edges
 	cost -= INFINITE;
 	edges.pop_back();
 
-	for(int i = 0; i <= 2; i += 2){
-		cost += (-vertice0costs[i].first);
-		edges.push_back(vertice0costs[i].second);
+	for(int i = 0; i < 2; i++){
+		pair<double, ii> p = vertice0costs.top();
+		vertice0costs.pop();
+		vertice0costs.pop();
+		cost += (-p.first);
+		edges.push_back(p.second);
 	}
 
 	return cost;

@@ -6,6 +6,8 @@
 #include <utility>
 #include <iostream>
 #include <limits>
+#include <algorithm>
+#include <numeric>
 class Lagrange{
 
     private:

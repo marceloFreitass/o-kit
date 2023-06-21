@@ -19,6 +19,7 @@ class Kruskal{
 public:
 
 	Kruskal(vvi dist);
+	Kruskal();
 
 	double MST(int nodes);
 	double oneMST(vvi dist, int nodes);

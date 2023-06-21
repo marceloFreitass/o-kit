@@ -4,10 +4,15 @@
 #include "Lagrange.h"
 #include <vector>
 #include <utility>
+#include <ctime>
+#include <chrono>
+
 
 using namespace std;
 
-//parei na hora de setar de proibir propriamente na matriz
+bool operator < (Node a, Node b){
+	return a.getLB() > b.getLB();
+}
 
 int getOptCost(std::string instanceName){ //Getting the cost from ILS heuristic
 
@@ -28,18 +33,15 @@ int getOptCost(std::string instanceName){ //Getting the cost from ILS heuristic
 }
 
 
-void setForbiddenArcs(Node* node, int dimension, vector<vector<double>> originalCost, vector<vector<double>> &newCost){ //Covers the forbidden arcs on a copy of the original cost matrix, setting the arcs cost in matrix to infinite
+void setInfiniteCosts(Node* node, int dimension, vector<vector<double>> originalCost, vector<vector<double>> &newCost){ //Covers the forbidden edges on a copy of the original cost matrix, setting the edges cost in matrix to infinite
 
-	for(int i = 0; i < dimension; i++){
-		for(int j = 0; j < dimension; j++){
-			newCost[i][j] = cost[i][j];
-		}
-	}
+	newCost = originalCost;
 	
-	int n =  node->getForbiddenArcs();
-
+	int n =  node->getForbiddenEdges().size();
+	vector<pair<int, int>> FE = node->getForbiddenEdges();
 	for(int i = 0; i < n; i++){
-		newCost[node->forbiddenArcs[i].first - 1][node->forbiddenArcs[i].second - 1] = INFINITE;
+		newCost[node->getForbiddenEdges()[i].first][node->getForbiddenEdges()[i].second] = INFINITE;
+		newCost[node->getForbiddenEdges()[i].second][node->getForbiddenEdges()[i].first] = INFINITE;
 	}
 }
 
@@ -48,17 +50,19 @@ Node BB(int type, int dimension, vector<vector<double>> cost, int optCost){ //Re
 	Node root, optSolution;
 	vector<Node> tree;
 	priority_queue<Node> bestBoundTree;
-	double upperBound = optCost + 1	; //UB starts with optCost from ILS +1
+	double upperBound = optCost + 1; //UB starts with optCost from ILS +1
 	double lowerBound;
 
 	vector<vector<double>> copyCost = cost;
 	Lagrange dual(upperBound, cost);
-	dual.subgradientMethod(root);
+	
 	//Solves the root problem and setting its members
+	dual.subgradientMethod(root);
 	root.setFeasible();
 	root.setChosen();
 	
 	optSolution = root;
+	
 	if(type <= 2){
 		tree.push_back(root);
 	}
@@ -91,34 +95,35 @@ Node BB(int type, int dimension, vector<vector<double>> cost, int optCost){ //Re
 			//And thats the optimal solution
 			if(currentNode.getLB() < upperBound){
 				upperBound = currentNode.getLB();
+				//cout << "A\n";
+				dual.setUpperBound(upperBound + 1);
 				optSolution = currentNode; 
 				}
 			}
 		
-		else{
+		else{ //Branching if not feasible
+
 			//Get all chosen edges
-			vector<pair<int, int>> chosenEdges = node.getChosenEdges();
+			vector<pair<int, int>> chosenEdges = currentNode.getChosenEdges();
 			int n = chosenEdges.size();
 			
-			for(int i = 0; i < n - 1; i++){
-				//Loops through the smallest subtour, creating a new node based on forbidden arcs of that subtour
+			for(int i = 0; i < n; i++){
+				//Loops through the largest degree vertice, creating a new node based on forbidden edges of that vertix
 				Node newNode;
 				newNode.setForbiddenEdges(currentNode.getForbiddenEdges());
+				newNode.setMultipliers(currentNode.getMultipliers());
+				dual.setMultipliers(currentNode.getMultipliers());
+				newNode.addForbiddenEdge(make_pair(chosenEdges[i].first, chosenEdges[i].second));
 
-				newNode.addForbiddenEdges(chosenEdges[i]);
-				pair<int, int> forbiddenArcs;
-				//forbiddenArcs = make_pair(chosenE[i],currentNode.subtours[currentNode.chosen][i+1]);
+				setInfiniteCosts(&newNode, dimension, cost, copyCost);
 				
+				dual.setOriginalCost(copyCost);
+				dual.subgradientMethod(newNode);
+				
+				if(newNode.getLB() <= upperBound){ // Lower bound has to be less or equal to UB, if not, the node isnt added
+					newNode.setFeasible();
+					newNode.setChosen();
 
-				setForbiddenArcs(&newNode, dimension, cost, copyCost); //create a copy of the original matrix, setting the arcs values on the copy matrix to infinite
-				
-				hungarian_problem_t p = getMatrixSolutionHungarian(dimension, copyCost, lowerBound); //Solve the problem with the copy matrix
-				if(lowerBound <= upperBound){ // Lower bound has to be less or equal to UB, if not, the node isnt added
-					newNode.subtours = getSubtours(p);
-					newNode.lowerBound = lowerBound;
-					newNode.feasible = (newNode.subtours.size() == 1);
-					newNode.chosen = smallerSubtour(newNode.subtours);
-					
 					if(type <= 2){
 						tree.push_back(newNode);
 					}
@@ -126,9 +131,7 @@ Node BB(int type, int dimension, vector<vector<double>> cost, int optCost){ //Re
 						bestBoundTree.push(newNode);
 					}
 					
-				}
-
-				hungarian_free(&p);		
+				}	
 			}
 		}
 		if(type == 2){
@@ -137,26 +140,25 @@ Node BB(int type, int dimension, vector<vector<double>> cost, int optCost){ //Re
 	
 		
 	}
-
-	for (int i = 0; i < dimension; i++) delete [] copyCost[i];
-	delete [] copyCost;
+	if(!optSolution.getFeasible()){
+		cout << "NOT FEASIBLE SOLUTION\n";
+	}
 	return optSolution;
 }
 
 
 
 int main(int argc, char **argv){
-	//Ajeitar a gambiarra no getSolution;
-	
+	Node otimo;
+
     Data * data = new Data(argc, argv[1]);
 	data->readData();
 	string instance = data->getInstanceName();
 	instance = instance.substr(instance.rfind('\\') + 1); //Getting the instance name
 	int optCost = getOptCost(instance);
+
+
 	vector<vector<double>> cost;
-	vector<pair<int,int>> pares;
-	vector<int> dummy;
-	vector<vector<int>> solution;
 
 	for(int i = 0; i < data->getDimension(); i++){
 		vector<double>temp;
@@ -166,31 +168,15 @@ int main(int argc, char **argv){
 		cost.push_back(temp);
 	}
     
-    for(int i = 0; i < cost.size(); i++){
-		for(int j = 0; j < cost[i].size(); j++){
-			cout << cost[i][j] << " ";
-		}
-		cout << endl;
-	}
-
-	Kruskal teste(cost);
-	cout << "Custo fake: " << teste.oneMST(cost, cost.size()) << endl;
-	solution = teste.getSolution(data->getDimension());
-	pares = teste.getEdges();
-
-	for(int i = 0; i < pares.size(); i++){
-		cout << pares[i].first << "->" << pares[i].second << endl;
-	}
-	vector<double> a(data->getDimension(), 0);
-	Lagrange lagrange(optCost + 1, cost);
-
-	Node root;
-	lagrange.subgradientMethod(root);
-	root.setChosen();
-	
 
 
+	auto begin = chrono::high_resolution_clock::now(); 
+	otimo = BB(1, data->getDimension(), cost, optCost);
+	auto end = chrono::high_resolution_clock::now();
 
-	
+	auto time = chrono::duration_cast<chrono::milliseconds>(end - begin);
+
+	cout << "Cost: " << otimo.getLB() << endl;
+	cout << "Time: " << time.count()/1000.0 << endl;
     
 }

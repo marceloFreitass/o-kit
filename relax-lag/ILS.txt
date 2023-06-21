@@ -12,6 +12,7 @@ gr24.tsp:1272
 gr48.tsp:5046
 hk48.tsp:11461
 lin105.tsp:14379
+kroD100.tsp:21294
 rat99.tsp:1211
 st70.tsp:675
 swiss42.tsp:1273

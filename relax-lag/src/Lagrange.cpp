@@ -5,18 +5,14 @@ using namespace std;
 
 Lagrange::Lagrange(double upperBound, vector<vector<double>> originalCost){
 
+    EPSILON = 1;
     setUpperBound(upperBound);
     setOriginalCost(originalCost);
-    EPSILON = 1;
+    lagrangianCosts = originalCost;
+    
     int n = originalCost.size();
-    //Inicializando matriz de custos lagrangiano que ficara mudando de acordo com os multiplicadores
-    for(int i = 0; i < n; i++){
-		vector<double>temp;
-		for(int j = 0; j < n; j++){
-			temp.push_back(originalCost[i][j]);
-		}
-		lagrangianCosts.push_back(temp);
-	}
+    vector<double> initialMultiplier(n, 0); // multipliers <- 0
+    setMultipliers(initialMultiplier);
 }
 
 void Lagrange::setOriginalCost(vector<vector<double>> originalCost){
@@ -69,34 +65,27 @@ void Lagrange::calculateSubgradient(Node& node){
         subgradient.push_back(2 - degrees[i]);
     }
 
-    cout << "SUBGRADIENT: {";
-
-    for(int i = 0; i < n; i++){
-        cout << subgradient[i] << ",";
-    }
-    cout << "}\n";
-
     setSubgradient(subgradient);
     node.setSubgradient(subgradient);
 }
 
 void Lagrange::calculateStepSize(Node* node){
+
     double stepSize;
     int squareSubgradientTotal = 0;
     vector<int> subgradient = node->getSubgradient();
     int n = subgradient.size();
 
+    if(checkSubgradient()){  //if subgradient <- 0, then squareSubgradientTotal = 0, avoiding division per 0
+        stepSize = 0;
+        setStepsize(stepSize);
+        return;
+    }
     for(int i = 0; i < n; i++){
         squareSubgradientTotal += (subgradient[i] * subgradient[i]);
     }
 
-    if(squareSubgradientTotal == 0){
-        stepSize = 0;
-        return;
-    }
-
     stepSize = EPSILON * ((upperBound - node->getLB())/squareSubgradientTotal);
-    cout << "StepSize: " << stepSize << endl;
     setStepsize(stepSize);
 }
 
@@ -104,26 +93,16 @@ void Lagrange::updateMultipliers(Node& node){
 
     vector<double> nextMultipliers = node.getMultipliers();
     int n = nextMultipliers.size();
+    vector<int> subgradient = node.getSubgradient();
     
     for(int i = 0; i < n; i++){
 
-        nextMultipliers[i] += stepSize * node.getSubgradient()[i];
+        nextMultipliers[i] += stepSize * subgradient[i];
         
     }
-    cout << endl;
-
-    
 
     node.setMultipliers(nextMultipliers);
     setMultipliers(nextMultipliers);
-
-    cout << "MULTIPLIERS: {";
-
-    for(int i = 0; i < n; i++){
-        cout << multipliers[i] << ",";
-    }
-    cout << endl;
-
     
 }
 
@@ -131,11 +110,9 @@ void Lagrange::updateLagrangianCosts(){
 
     
     int n = originalCost.size();
+
     for(int i = 0; i < n; i++){
         for(int j = 0; j < n; j++){
-            if(i == j){
-                continue;
-            }
             lagrangianCosts[i][j] = originalCost[i][j] - multipliers[i] - multipliers[j];
         }
     }
@@ -166,37 +143,33 @@ bool Lagrange::checkSubgradient(){
 }
 
 void Lagrange::subgradientMethod(Node& node){
-
-    double EPSILON_MIN = 0.0005;
+    
     int n = originalCost.size();
-    vector<vector<int>> solutionMatrix(n, vector<int>(n));
-
-    vector<double> initialMultiplier(n, 0);
-    setMultipliers(initialMultiplier);
-    int k = 0;
-
-    double bestLB = -numeric_limits<double>::infinity();
     vector<double> bestMultipliers;
     vector<int> bestSubgradient;
     vector<pair<int, int>> bestMST;
     
+    EPSILON = 1;
+    double EPSILON_MIN = 0.0005;
+    double bestLB = -numeric_limits<double>::infinity();
+    int k = 0;
+
+    Kruskal *kruskal;
     while(1){
         
-        Kruskal kruskal(lagrangianCosts);
+        kruskal = new Kruskal();
 
-        double LB = kruskal.oneMST(lagrangianCosts, lagrangianCosts.size());
+        double LB = kruskal->oneMST(lagrangianCosts, lagrangianCosts.size());
         
-        node.setMST(kruskal.getEdges());
-        node.setMultipliers(multipliers); //multipliers = lagrange.getMultipliers()
+        node.setMST(kruskal->getEdges());
+        node.setMultipliers(multipliers); 
         for(int i = 0; i < n; i++){
-            LB += 2 * multipliers[i];
+            LB += 2 * multipliers[i]; //cost = Lcij * xij + 2λi
         }
-        cout << "LB: " << LB << endl;
         node.setLB(LB);
 
         calculateSubgradient(node);
         calculateStepSize(&node);
-        
         updateMultipliers(node);
         updateLagrangianCosts();
 
@@ -207,52 +180,33 @@ void Lagrange::subgradientMethod(Node& node){
             bestMST = node.getMST();
             k = 0;
         }
-        if(checkSubgradient()){
+        
+        if(checkSubgradient()){ //stop criterrion
             break;
         }
-        else{
+        
+        
+        else if(node.getLB() <= bestLB){ //if not improving
             k++;
 
-            if(k > 30){
+            if(k >= 30){
                 k = 0;
-                EPSILON /= 2;
+                EPSILON = EPSILON / 2;
             }
         }
 
         if(EPSILON < EPSILON_MIN || (checkMultipliers() and checkSubgradient())){
             break;
+            
         }
     }
+    delete kruskal;
 
     node.setLB(bestLB);
     node.setMultipliers(bestMultipliers);
     node.setMST(bestMST);
     node.setSubgradient(bestSubgradient);
-    
-    cout << "Custo: " << node.getLB() << endl << endl;
-
-    cout << "{";
-
-    for(int i = 0; i < n; i++){
-        cout << node.getMultipliers()[i] << ", ";
-    }
-    cout << "}\n";
-
-    for(int i = 0; i < node.getMST().size(); i++){
-		solutionMatrix[node.getMST()[i].first][node.getMST()[i].second] = 1;
-		solutionMatrix[node.getMST()[i].second][node.getMST()[i].first] = 1;
-	}
-
-    cout << "Solution matrix:\n";
-
-    for(int i = 0; i < solutionMatrix.size(); i++){
-        for(int j = 0; j < solutionMatrix[i].size(); j++){
-            cout << solutionMatrix[i][j] << " ";
-        }
-        cout << endl;
-    }
-    cout << endl;
-    
+   
 }
 
 

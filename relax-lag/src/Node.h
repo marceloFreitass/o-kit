@@ -30,7 +30,7 @@ class Node{
         void setChosen();
         void setFeasible();
         
-        void addForbiddenEdges(pair<int, int> arc);
+        void addForbiddenEdge(pair<int, int> arc);
 
         vector<pair<int, int>> getMST();
         vector<int> getSubgradient();

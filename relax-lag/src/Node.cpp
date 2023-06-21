@@ -8,12 +8,12 @@ Node::Node(){
 void Node::setMST(vector<pair<int,int>> MST){
     this->MST = MST;
 }
-void Node::addForbiddenArcs(pair<int, int> arc){
-    forbiddenArcs.push_back(arc);
+void Node::addForbiddenEdge(pair<int, int> arc){
+    forbiddenEdges.push_back(arc);
 }
 
-void Node::setForbiddenArcs(vector<pair<int, int>> forbiddenArcs){
-    this->forbiddenArcs = forbiddenArcs;
+void Node::setForbiddenEdges(vector<pair<int, int>> forbiddenEdges){
+    this->forbiddenEdges = forbiddenEdges;
 }
 
 void Node::setLB(double lowerBound){
@@ -29,7 +29,7 @@ void Node::setMultipliers(vector<double> multipliers){
 }
 
 void Node::setChosen(){
-    int highestDegree = 2;
+    int highestDegree;
     int highestDegreeIndex;
 
     int n = subgradient.size();
@@ -39,7 +39,7 @@ void Node::setChosen(){
             highestDegreeIndex = i;
             continue;
         }
-        if(subgradient[i] < highestDegree){ //Mais negativo, mais grau
+        if(subgradient[i] <= highestDegree){ //more negative, bigger degree
             highestDegree = subgradient[i];
             highestDegreeIndex = i;
         }
@@ -80,13 +80,14 @@ vector<double> Node::getMultipliers(){
     return multipliers;
 }
 
-vector<pair<int, int>> Node::getForbiddenArcs(){
-    return forbiddenArcs;
+vector<pair<int, int>> Node::getForbiddenEdges(){
+    return forbiddenEdges;
 }
 
 vector<pair<int, int>> Node::getChosenEdges(){
 
     int n = MST.size();
+    
     vector<pair<int, int>> chosenEdges;
     for(int i = 0; i < n; i++){
         if(MST[i].first == chosen || MST[i].second == chosen){
