@@ -170,6 +170,7 @@ void Lagrange::subgradientMethod(Node& node){
 
         calculateSubgradient(node);
         calculateStepSize(&node);
+        cout << "Tamanho do passo: " << stepSize << endl;
         updateMultipliers(node);
         updateLagrangianCosts();
 
@@ -206,6 +207,23 @@ void Lagrange::subgradientMethod(Node& node){
     node.setMultipliers(bestMultipliers);
     node.setMST(bestMST);
     node.setSubgradient(bestSubgradient);
+
+    cout << "Matrix de custos lagrangeanos: \n";
+
+    for(int i = 0; i < lagrangianCosts.size(); i++){
+        for(int j = 0; j < lagrangianCosts[i].size(); j++){
+            cout << lagrangianCosts[i][j] << " ";
+        }
+        cout << endl;
+    }
+    cout << endl << endl;
+
+    cout << "Arestas: \n";
+
+    for(int i = 0; i < bestMST.size(); i++){
+        cout << bestMST[i].first << "->" << bestMST[i].second << endl; 
+    } 
+    cout << endl;
    
 }
 

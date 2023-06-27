@@ -150,7 +150,7 @@ Node BB(int type, int dimension, vector<vector<double>> cost, int optCost){ //Re
 
 int main(int argc, char **argv){
 	Node otimo;
-
+	Kruskal kruskal;
     Data * data = new Data(argc, argv[1]);
 	data->readData();
 	string instance = data->getInstanceName();
@@ -169,7 +169,8 @@ int main(int argc, char **argv){
 	}
     
 
-
+	cout << "Custo fake: " << kruskal.oneMST(cost, data->getDimension()) << endl;
+	cout << "Tamanho: " << kruskal.getEdges().size() << endl;
 	auto begin = chrono::high_resolution_clock::now(); 
 	otimo = BB(1, data->getDimension(), cost, optCost);
 	auto end = chrono::high_resolution_clock::now();
