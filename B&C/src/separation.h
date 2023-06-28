@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <iterator>
 #include <pthread.h>
+#include <bits/stdc++.h>
 
 #define EPSILON 0.00000001
 

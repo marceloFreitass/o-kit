@@ -61,15 +61,8 @@ void MyCutCallback::main()
 	}
 
 	x_vals.end();
-	cout << "B" << endl;
-	for(int i = 0; i < n; i++) {
-		for(int j = 0; j < n; j++) {
-			cout << x_edge[i][j] << " ";
-		}
-		cout << endl;
-	}
 
-	cutSetPool = MaxBack(x_edge, n);
+	cutSetPool = MinCut(x_edge, n); //MAXBACK
 	
 	if (cutSetPool.empty() && depth <= 7) {
 		//cutSetPool = MinCut(x_edge, n);

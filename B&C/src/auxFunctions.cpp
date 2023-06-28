@@ -88,7 +88,6 @@ void printSolution(IloCplex cplex, IloArray <IloBoolVarArray> x, int n)
 	in_solution[0] = true;
 	bool find = true;
 	int last_index = 0, current_index = 0;
-	cout << "A" << endl;
 	while (solution.size() < n){
 		p = solution[last_index];
 
