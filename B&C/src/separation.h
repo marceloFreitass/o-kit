@@ -35,3 +35,5 @@ extern vector <vector <int>> MinCut (double ** weight, int dimension);
 
 
 #endif
+
+//---------------------------------------------------------------------------

@@ -59,6 +59,8 @@ void MyCutCallback::main()
 			x_edge[i][j] = x_vals[l++];
 		}
 	}
+
+	x_vals.end();
 	cout << "B" << endl;
 	for(int i = 0; i < n; i++) {
 		for(int j = 0; j < n; j++) {

@@ -14,6 +14,16 @@ int selectVertex(vector<bool>& chosed, int n){
 
 }
 
+void updateBool(vector<bool>&chosed, vector<int> Smin){
+
+    int n = Smin.size();
+
+    for(int i = 0; i < n; i++){
+        chosed[Smin[i]] = 1;
+    }
+}
+
+
 bool checkChosed(vector<bool> chosed){
 
     int n = chosed.size();
@@ -26,6 +36,8 @@ bool checkChosed(vector<bool> chosed){
 
     return 1;
 }
+
+
 
 double sumWeights(int v, vector<bool> chosed, double** x, bool inout){ //Soma os pesos de um vertice v em relacao aos vertices que nao estao em S
     //inout == 1 if belongs to s, 0 if not
@@ -54,7 +66,7 @@ int maximumMaxBack(vector<bool>&chosed, double ** x, double& maximumMaxBackValue
 
     for(int i = 0; i < n; i++){
         if(chosed[i] == 0){
-            
+
             value = sumWeights(i, chosed, x, 1);
             if(value > maxValue){
                 maxValue = value;
@@ -79,11 +91,11 @@ vector<vector<int>> MaxBack(double** x, int n){
     }
 
 
-    
+
     vector<vector<int>> bestS;
     vector<int> S0, Smin, V;
     vector<bool> alreadyChosed(n, 0);
-    
+
 
     double cutVal;
     double cutMin = numeric_limits<double>::infinity();
@@ -96,15 +108,16 @@ vector<vector<int>> MaxBack(double** x, int n){
 
         int v = selectVertex(alreadyChosed, n);
         vector<bool> inS(n, 0);
-        S0.clear();
-        S0.push_back(v);
-        inS[v] = 1;
+        Smin.push_back(v);
 
-        cutVal = sumWeights(v, inS, x, 0);
-        cutMin = cutVal;
+        S0 = Smin;
+        updateBool(inS, Smin);
+
+        cutMin = sumWeights(v, inS, x, 0); //soma todos os pesos de um vertice v que entrou em S com todos os vertices que nao estao em S
+        cutVal = cutMin;
         cout << "CUT VAL INICIAL: " << cutVal << endl;
         cout << "Agora: \n\n";
-        //De todos os vertices que nao estao em S, escolher o vertice em que a soma SumWeights é maxima
+        //De todos os vertices que nao estao em S, escolher o vertice em que a soma SumWeights é maxima em relacao aos vertices que estao em S
 
         while(S0.size() < V.size()){
 
@@ -128,6 +141,13 @@ vector<vector<int>> MaxBack(double** x, int n){
                 Smin = S0;
             }
         }
+        updateBool(alreadyChosed, Smin);
+        cout << "ALREADY CHOSED: {";
+        for(int i = 0; i < alreadyChosed.size(); i++){
+            cout << alreadyChosed[i] << ",";
+        }
+        cout << "}\n";
+
 
         cout << "Smin: \n";
         for(int i = 0; i < Smin.size(); i++){
@@ -135,15 +155,16 @@ vector<vector<int>> MaxBack(double** x, int n){
         }
         cout << endl;
         cout << "Cutmin: " << cutMin << endl;
-
+        if(Smin.size() == n){
+            break;
+        }
         bestS.push_back(Smin);
 
     }
-    
+
     //Escolher um vertice de v de V para iniciar a heuristica
 
 
     //Usar std::set
     return bestS;
 }
-
