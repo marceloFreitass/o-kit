@@ -46,7 +46,7 @@ void MyLazyCallback::main()
 
 	x_vals.end();
 	
-	cutSetPool = MinCut(x_edge, n); //MAX BACK
+	cutSetPool = MinCut(x_edge, n); //MAXBACK
 
 	/***************** Creating the constraints ***************/
 	for (int c = 0; c < cutSetPool.size(); c++) {
