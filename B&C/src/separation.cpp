@@ -145,6 +145,21 @@ vector<vector<int>> MaxBack(double** x, int n){
     return bestS;
 }
 
+int index(vector<vector<int>> V, int element){
+
+    int n = V.size();
+
+    for(int i = 0; i < n; i++){
+        for(int j = 0; j < V[i].size(); j++){
+            if(V[i][j] == element){
+                return i;
+            }
+        }
+    }
+
+    return -1;
+}
+
 int tightVertex(vector<vector<int>>& V, vector<bool> inA, double ** x, int n){
 
     double sum;
@@ -227,13 +242,25 @@ void shrinkGraph(vector<vector<int>>& V, double ** x, int n, int a, int b){
     vector<vector<int>> edgesToMerge;
 
     cout << "A/B: " << a << "/" << b << endl;
-    
-    int bSize = V[b].size();
-    for(int i = 0; i < bSize; i++){
-        V[a].push_back(V[b][0]);
-        V[b].erase(V[b].begin());
+    //Achar A e B em V
+    int indA = index(V, a);
+    int indB = index(V, b);
+    cout << "V: {";
+    for(int i = 0; i < V.size(); i++){
+        cout << "{";
+        for(int j = 0; j < V[i].size(); j++){
+            cout << V[i][j] << ",";
+        }
+        cout << "}";
     }
-    V.erase(V.begin() + b);
+    cout << "}\n";
+
+    int bSize = V[indB].size();
+    for(int i = 0; i < bSize; i++){
+        V[indA].push_back(V[indB][0]);
+        V[indB].erase(V[indB].begin());
+    }
+    V.erase(V.begin() + indB);
     
     //V.erase(V.begin() + b);
     
@@ -246,6 +273,8 @@ void shrinkGraph(vector<vector<int>>& V, double ** x, int n, int a, int b){
         cout << endl;
     }
     cout << endl;
+
+    
 
     x[a][b] = 0;
 
@@ -300,7 +329,7 @@ void shrinkGraph(vector<vector<int>>& V, double ** x, int n, int a, int b){
     return;
 }
 
-double MinCutPhase(vector<vector<int>>& V, double **x, int n, int a){
+double MinCutPhase(vector<vector<int>>& V, double **x, int n, int a, int& last1, int& last2){
 
     vector<int> A;
     vector<bool> inA(n, 0);
@@ -331,14 +360,17 @@ double MinCutPhase(vector<vector<int>>& V, double **x, int n, int a){
     }
 
     cout << "Value: " << value << endl;
+
+    last1 = A[A.size() - 1];
+    last2 = A[A.size() - 2];
     
-    shrinkGraph(V, x, n, A[A.size() - 1], A[A.size() - 2]);
+    //shrinkGraph(V, x, n, A[A.size() - 1], A[A.size() - 2]);
     return value;
 }
 
 vector<vector<int>> MinCut(double**x, int n){
 
-
+    int last1, last2;
     for(int i = 0; i < n; i++){
         for(int j = 0; j < n; j++){
             if(x[i][j] < EPSILON){
@@ -363,12 +395,15 @@ vector<vector<int>> MinCut(double**x, int n){
 
     while(V.size() > 1){
 
-        cutOfThePhase = MinCutPhase(V, x, n, a);
+        cutOfThePhase = MinCutPhase(V, x, n, a, last1, last2);
         if(cutOfThePhase < minimumCut){
             minimumCut = cutOfThePhase;
         }
+        shrinkGraph(V, x, n, last1, last2);
 
     }
+
+    cout << "MINCUT: " << minimumCut << endl;
 
 
 
