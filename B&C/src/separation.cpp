@@ -1,17 +1,16 @@
 #include "separation.h"
 
-int selectVertex(vector<bool>& chosed, int n){
+int selectVertex(vector<bool>& chosed, int n){ //Select
 
-    for(int i = 0; i < n; i++){
+    auto it = find(chosed.begin(), chosed.end(), 0);
 
-        if(chosed[i] == 0){
-            chosed[i] = 1;
-            return i;
-        }
+    if (it != chosed.end())
+    {
+        int index = it - chosed.begin();
+        chosed[index] = 1;
+        return index;
     }
-
     return -1;
-
 }
 
 void updateBool(vector<bool>&chosed, vector<int> Smin){
@@ -23,7 +22,6 @@ void updateBool(vector<bool>&chosed, vector<int> Smin){
     }
 }
 
-
 bool checkChosed(vector<bool> chosed){
 
     int n = chosed.size();
@@ -33,23 +31,28 @@ bool checkChosed(vector<bool> chosed){
             sum++;
         }
     }
-    return sum >= (n/2) + 1;
-    //return 1;
+    return sum >= ((n/2) + 1);
 }
 
 
 
-double sumWeights(int v, vector<bool> chosed, double** x, bool inout){ //Soma os pesos de um vertice v em relacao aos vertices que nao estao em S
+double sumWeights(int v, vector<bool> chosed, double** x, bool inout){ //Sum the weights of v with respect to the vertices are in/out chosed
     //inout == 1 if belongs to s, 0 if not
     double sum = 0;
     int n = chosed.size();
     for(int i = 0; i < n; i++){
         if(chosed[i] == inout){
             if(i < v){
-                sum += x[i][v];
+                if(x[i][v] > EPSILON){
+                    sum += x[i][v];
+                }
+                
             }
             else{
-                sum += x[v][i];
+                if(x[v][i] > EPSILON){
+                    sum += x[v][i];
+                }
+                
             }
         }
     }
@@ -85,7 +88,7 @@ vector<vector<int>> MaxBack(double** x, int n){
     for(int i = 0; i < n; i++){
         for(int j = 0; j < n; j++){
             if(x[i][j] < EPSILON){
-                //x[i][j] = 0;
+                x[i][j] = 0;
             }
         }
     }
@@ -94,27 +97,26 @@ vector<vector<int>> MaxBack(double** x, int n){
     vector<int> S0, Smin, V;
     vector<bool> alreadyChosed(n, 0);
 
-
     double cutVal;
     double cutMin = numeric_limits<double>::infinity();
 
-    for(int i = 0; i < n; i++){ //Tqv se usa o vertice 0
+    for(int i = 0; i < n; i++){
         V.push_back(i);
     }
 
-    while(!checkChosed(alreadyChosed)){ //enquanto nao tiver usado todos
-
+    while(!checkChosed(alreadyChosed)){ //until visited all vertices
+        
+        S0.clear();
         int v = selectVertex(alreadyChosed, n);
         vector<bool> inS(n, 0);
         S0.push_back(v);
 
-        //S0 = Smin;
         updateBool(inS, S0);
 
-        cutMin = sumWeights(v, inS, x, 0); //soma todos os pesos de um vertice v que entrou em S com todos os vertices que nao estao em S
+        cutMin = sumWeights(v, inS, x, 0); //sum all weights between v and all vertices that are not in S0
         cutVal = cutMin;
 
-        //De todos os vertices que nao estao em S, escolher o vertice em que a soma SumWeights é maxima em relacao aos vertices que estao em S
+        //From all vertices that arent in S, choose the vertex whose SumWeights is maximum with respect to the vertices that are in S
 
         while(S0.size() < V.size()){
 
@@ -122,7 +124,7 @@ vector<vector<int>> MaxBack(double** x, int n){
             v = maximumMaxBack(inS, x, maximumMaxBackValue);
 
             S0.push_back(v);
-            inS[v] = 1;
+            updateBool(inS, S0);
 
             cutVal += 2 - 2* maximumMaxBackValue;
             if(cutVal < cutMin){
@@ -131,6 +133,7 @@ vector<vector<int>> MaxBack(double** x, int n){
             }
         }
         updateBool(alreadyChosed, Smin);
+
         if(Smin.size() == n){
             break;
         }
@@ -138,14 +141,11 @@ vector<vector<int>> MaxBack(double** x, int n){
 
     }
 
-    //Escolher um vertice de v de V para iniciar a heuristica
-
-
-    //Usar std::set
     return bestS;
 }
 
-int index(vector<vector<int>> V, int element){
+
+int index2D(vector<vector<int>> V, int element){
 
     int n = V.size();
 
@@ -160,56 +160,52 @@ int index(vector<vector<int>> V, int element){
     return -1;
 }
 
+int index(vector<int> V, int element){
+
+    auto it = find(V.begin(), V.end(), element);
+
+    if (it != V.end())
+    {
+        int index = it - V.begin();
+        return index;
+    }
+    return -1;
+}
+
+
 int tightVertex(vector<vector<int>>& V, vector<bool> inA, double ** x, int n){
 
     double sum;
     double maxSum = -numeric_limits<double>::infinity();
     int maxI;
-    for(int i = 0; i < V.size();i++){ //Tight até V.size() tb e v[i][0], v;
+    int Vsize = V.size();
+    for(int i = 0; i < Vsize;i++){
+
         if(!inA[V[i][0]]){
 
             sum = sumWeights(V[i][0], inA, x, 1);
-            cout << "A: {";
-            for(int j = 0; j < n; j++){
-                if(inA[j]){
-                    cout << j << ",";
-                }
-            }
-            cout << "}\n";
-            cout << "i: " << V[i][0] << endl;
 
             if(sum > maxSum){
                 maxSum = sum;
-                cout << "MAX: " << maxSum << endl;
                 maxI = V[i][0];
             }
         }
     }
-    cout << "TIGHT: " << maxI << endl;
     return maxI;
-
-
 }
 
 vector<vector<int>> identifyEdges(double **x, int n, int a, int b){
 
 
-    vector<vector<int>> EdgesAB(2, vector<int>(n)); //EDGES[0][i] == edges connected with a, EDGES[1][i] vertex connected witb b
-    EdgesAB[0].clear();
+    vector<vector<int>> EdgesAB(2, vector<int>(n)); //EDGES[0][i] == edges connected with a, EDGES[1][i] edges connected witb b
     EdgesAB[1].clear();
     for(int i = 0; i < n; i++){
-        if(i < a || i < b){
-            if(x[i][a] > EPSILON){
-                EdgesAB[0].push_back(i);
-            }
+        if(i < b){
             if(x[i][b] > EPSILON){
                 EdgesAB[1].push_back(i);
             }
         }
-        else{
-            if(x[a][i] > EPSILON){
-                EdgesAB[0].push_back(i);
-            }
+        else if(i > b){
             if(x[b][i] > EPSILON){
                 EdgesAB[1].push_back(i);
             }
@@ -217,70 +213,46 @@ vector<vector<int>> identifyEdges(double **x, int n, int a, int b){
         
     }
 
-
-    cout << "CONECTADOS COM " << a << ": ";
-    for(int i = 0; i < EdgesAB[0].size(); i++){
-        cout << EdgesAB[0][i] << " ";
-    }
-    cout << endl;
-    cout << "CONECTADOS COM " << b << ": ";
-    for(int i = 0; i < EdgesAB[0].size(); i++){
-        cout << EdgesAB[1][i] << " ";
-    }
-    cout << endl;
-
     return EdgesAB;
 }
 
+vector<int> getComplement(vector<int> A, int n){
+
+    vector<int> complement;
+    for(int i = 0; i < n; i++){
+        if(index(A, i) == -1){
+            complement.push_back(i);
+        }
+    }
+    return complement;
+
+
+}
+
 void shrinkGraph(vector<vector<int>>& V, double ** x, int n, int a, int b){
-    cout << "SHRINK: \n\n";
 
     if(a > b){
         swap(a, b);
     }
+    //smaller vertex represents the "supervertex"
 
     vector<vector<int>> edgesToMerge;
 
-    cout << "A/B: " << a << "/" << b << endl;
-    //Achar A e B em V
-    int indA = index(V, a);
-    int indB = index(V, b);
-    cout << "V: {";
-    for(int i = 0; i < V.size(); i++){
-        cout << "{";
-        for(int j = 0; j < V[i].size(); j++){
-            cout << V[i][j] << ",";
-        }
-        cout << "}";
-    }
-    cout << "}\n";
+    int indA = index2D(V, a);
+    int indB = index2D(V, b);
 
     int bSize = V[indB].size();
-    for(int i = 0; i < bSize; i++){
+    for(int i = 0; i < bSize; i++){ //updating the V subsets to represents a "supervertex"
         V[indA].push_back(V[indB][0]);
         V[indB].erase(V[indB].begin());
     }
     V.erase(V.begin() + indB);
     
-    //V.erase(V.begin() + b);
-    
-    //V[a].push_back(b);
-    cout << "X ANTES DO MERGE: \n";
-    for(int i = 0; i < n; i++){
-        for(int j = 0; j < n; j++){
-            cout << x[i][j] << " ";
-        }
-        cout << endl;
-    }
-    cout << endl;
-
-    
-
     x[a][b] = 0;
 
-    edgesToMerge = identifyEdges(x, n, a, b);
+    edgesToMerge = identifyEdges(x, n, a, b); //getting the vertices connected with b
 
-    for(int i = 0; i < edgesToMerge[1].size(); i++){
+    for(int i = 0; i < edgesToMerge[1].size(); i++){ //updating the x costs
         if(a < edgesToMerge[1][i]){
             if(b < edgesToMerge[1][i]){
                 x[a][edgesToMerge[1][i]] += x[b][edgesToMerge[1][i]];
@@ -305,31 +277,10 @@ void shrinkGraph(vector<vector<int>>& V, double ** x, int n, int a, int b){
         }
     }
 
-    cout << "X DEPOS DO MERGE: \n";
-    for(int i = 0; i < n; i++){
-        for(int j = 0; j < n; j++){
-            cout << x[i][j] << " ";
-        }
-        cout << endl;
-    }
-    cout << endl;
-
-    cout << "V: {";
-    for(int i = 0; i < V.size(); i++){
-        cout << "{";
-        for(int j = 0; j < V[i].size(); j++){
-            cout << V[i][j] << ",";
-        }
-        cout << "}";
-    }
-    cout << "}\n";
-
-
-
     return;
 }
 
-double MinCutPhase(vector<vector<int>>& V, double **x, int n, int a, int& last1, int& last2){
+double MinCutPhase(vector<vector<int>>& V, double **x, int n, int a, int& last1, int& last2, vector<int>& set){
 
     vector<int> A;
     vector<bool> inA(n, 0);
@@ -338,84 +289,88 @@ double MinCutPhase(vector<vector<int>>& V, double **x, int n, int a, int& last1,
     double value = 0;
 
 
-    while(A.size() < V.size()){ //Mudei essa condicao de n para V.size() pois o grafo sofreu shrink
+    while(A.size() < V.size()){
 
-        int tV = tightVertex(V, inA, x, n);
+        int tV = tightVertex(V, inA, x, n); //find the vertex that is not in A with the maximum weight attached to vertex that are in A
         A.push_back(tV);
         inA[tV] = 1;
 
     }
 
-    cout << "ULTIMOS NOS ADICIONADOS: " << A[A.size() - 1] << " e " << A[A.size() - 2] << endl;
-
-    int lastVertex = A[A.size() - 1];
+    int lastVertex = A[A.size() - 1]; //cut of the phase value = sum of weights of last added vertex
 
     for(int i = 0; i < n; i++){
         if(lastVertex < i){
-            value += x[lastVertex][i];
+            if(x[lastVertex][i] > EPSILON){
+                value += x[lastVertex][i];
+            }
+            
         }
         else{
-            value += x[i][lastVertex];
+            if(x[i][lastVertex] > EPSILON){
+                value += x[i][lastVertex];
+            }
+            
         }
     }
-
-    cout << "Value: " << value << endl;
 
     last1 = A[A.size() - 1];
     last2 = A[A.size() - 2];
     
-    //shrinkGraph(V, x, n, A[A.size() - 1], A[A.size() - 2]);
+    int indSet1 = index2D(V, last1);
+    if(value < 2 - EPSILON){ //getting the smaller subtour(less constraints) set
+        if(V[indSet1].size() <= n/2){
+            set = V[indSet1];
+        }
+        else{
+            set = getComplement(V[indSet1], n);
+        }
+    }
+
     return value;
 }
 
 vector<vector<int>> MinCut(double**x, int n){
 
+    srand(time(NULL));
+    vector<int> set;
+    vector<vector<int>> cutSet;
+    vector<vector<int>> V;
     int last1, last2;
+    double cutOfThePhase;
+
+    int a = rand() % n;
+
     for(int i = 0; i < n; i++){
-        for(int j = 0; j < n; j++){
+        for(int j = i+1; j < n; j++){
             if(x[i][j] < EPSILON){
                 x[i][j] = 0;
             }
-            cout << x[i][j] << " ";
         }
-        cout << endl;
     }
-    cout << endl;
-
-
-
-    vector<vector<int>> V;
-    int a = 0;
-    double cutOfThePhase;
-    double minimumCut = numeric_limits<double>::infinity();
 
     for(int i = 0; i < n; i++){
         V.push_back({i});
     }
 
-    while(V.size() > 1){
-
-        cutOfThePhase = MinCutPhase(V, x, n, a, last1, last2);
-        if(cutOfThePhase < minimumCut){
-            minimumCut = cutOfThePhase;
+    while(1){
+        
+        cutOfThePhase = MinCutPhase(V, x, n, a, last1, last2, set);
+        if(!set.empty()){
+            cutSet.push_back(set);
+            set.clear();
+        }
+        if(V.size() == 2){
+            break;
         }
         shrinkGraph(V, x, n, last1, last2);
 
     }
 
-    cout << "MINCUT: " << minimumCut << endl;
-
-
-
-
-
-
-
-
-
-
-
+    return cutSet;
 }
+
+
 
 
 
