@@ -110,7 +110,7 @@ vector<vector<int>> MaxBack(double** x, int n){
         int v = selectVertex(alreadyChosed, n);
         vector<bool> inS(n, 0);
         S0.push_back(v);
-
+        alreadyChosed[v] = 1;
         updateBool(inS, S0);
 
         cutMin = sumWeights(v, inS, x, 0); //sum all weights between v and all vertices that are not in S0
@@ -132,15 +132,15 @@ vector<vector<int>> MaxBack(double** x, int n){
                 Smin = S0;
             }
         }
-        updateBool(alreadyChosed, Smin);
 
         if(Smin.size() == n){
             break;
         }
+
         bestS.push_back(Smin);
 
     }
-
+    
     return bestS;
 }
 
