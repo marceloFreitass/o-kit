@@ -6,7 +6,7 @@
 #include <utility>
 #include <ctime>
 #include <chrono>
-
+#include <list>
 
 using namespace std;
 
@@ -76,7 +76,7 @@ Node BB(int type, int dimension, vector<vector<double>> cost, int optCost){ //Re
 		//Choosing and erasing the last node
 		if(type == 1){
 			currentNode = tree.back();
-			tree.erase(tree.end()); 
+			tree.pop_back(); 
 		}
 		//Breadth
 		//Chosing and erasing the first node
@@ -120,7 +120,8 @@ Node BB(int type, int dimension, vector<vector<double>> cost, int optCost){ //Re
 				dual.setOriginalCost(copyCost);
 				dual.subgradientMethod(newNode);
 				
-				if(newNode.getLB() <= upperBound){ // Lower bound has to be less or equal to UB, if not, the node isnt added
+				
+				if(upperBound - newNode.getLB() > 0.000001){ // Lower bound has to be less or equal to UB, if not, the node isnt added
 					newNode.setFeasible();
 					newNode.setChosen();
 
@@ -131,9 +132,10 @@ Node BB(int type, int dimension, vector<vector<double>> cost, int optCost){ //Re
 						bestBoundTree.push(newNode);
 					}
 					
-				}	
+				}
 			}
 		}
+
 		if(type == 2){
 			tree.erase(tree.begin());
 		}
@@ -169,8 +171,6 @@ int main(int argc, char **argv){
 	}
     
 
-	cout << "Custo fake: " << kruskal.oneMST(cost, data->getDimension()) << endl;
-	cout << "Tamanho: " << kruskal.getEdges().size() << endl;
 	auto begin = chrono::high_resolution_clock::now(); 
 	otimo = BB(1, data->getDimension(), cost, optCost);
 	auto end = chrono::high_resolution_clock::now();

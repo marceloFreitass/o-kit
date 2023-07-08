@@ -417,6 +417,7 @@ Solution Pertubation(const Solution s){
     int tSub1, tSub2;
     int qV = (n - 1)/10; 
 
+
     if(qV > 2){ //chosing random subsets sizes 
 
         tSub1 = rand() % (qV - 1) + 2; //In case of vertices > 29, the size range changes
@@ -427,6 +428,9 @@ Solution Pertubation(const Solution s){
         tSub1 = tSub2 = 2;
     }
 
+
+    cout << "TAMANHO1: " << tSub1 << endl;
+    cout << "TAMANHO2: " << tSub2 << endl;  
     int i1, j1, i2, j2;
 
     j1 = rand() % (n - 1 - tSub1) + tSub1; //chosing a random subset1 end
@@ -505,6 +509,7 @@ Solution Pertubation(const Solution s){
             }
         }
     }
+
     return sCopy;
 }
 
@@ -552,6 +557,7 @@ Solution ILS(int maxIter, int maxIterILS, Data& adjMatrix){
 
 
 int main(int argc, char** argv) {
+
     srand((unsigned)time(NULL));
     
     auto data = Data(argc, argv[1]);

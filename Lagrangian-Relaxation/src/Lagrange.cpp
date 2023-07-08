@@ -84,7 +84,6 @@ void Lagrange::calculateStepSize(Node* node){
     for(int i = 0; i < n; i++){
         squareSubgradientTotal += (subgradient[i] * subgradient[i]);
     }
-
     stepSize = EPSILON * ((upperBound - node->getLB())/squareSubgradientTotal);
     setStepsize(stepSize);
 }
@@ -153,6 +152,7 @@ void Lagrange::subgradientMethod(Node& node){
     double EPSILON_MIN = 0.0005;
     double bestLB = -numeric_limits<double>::infinity();
     int k = 0;
+    lagrangianCosts = originalCost;
 
     Kruskal *kruskal;
     while(1){
@@ -160,7 +160,6 @@ void Lagrange::subgradientMethod(Node& node){
         kruskal = new Kruskal();
 
         double LB = kruskal->oneMST(lagrangianCosts, lagrangianCosts.size());
-        
         node.setMST(kruskal->getEdges());
         node.setMultipliers(multipliers); 
         for(int i = 0; i < n; i++){
@@ -170,7 +169,6 @@ void Lagrange::subgradientMethod(Node& node){
 
         calculateSubgradient(node);
         calculateStepSize(&node);
-        cout << "Tamanho do passo: " << stepSize << endl;
         updateMultipliers(node);
         updateLagrangianCosts();
 
@@ -196,7 +194,7 @@ void Lagrange::subgradientMethod(Node& node){
             }
         }
 
-        if(EPSILON < EPSILON_MIN || (checkMultipliers() and checkSubgradient())){
+        if(EPSILON < EPSILON_MIN || (checkMultipliers() and checkSubgradient()) || (upperBound - bestLB <= 0.000001)){
             break;
             
         }
@@ -208,22 +206,6 @@ void Lagrange::subgradientMethod(Node& node){
     node.setMST(bestMST);
     node.setSubgradient(bestSubgradient);
 
-    cout << "Matrix de custos lagrangeanos: \n";
-
-    for(int i = 0; i < lagrangianCosts.size(); i++){
-        for(int j = 0; j < lagrangianCosts[i].size(); j++){
-            cout << lagrangianCosts[i][j] << " ";
-        }
-        cout << endl;
-    }
-    cout << endl << endl;
-
-    cout << "Arestas: \n";
-
-    for(int i = 0; i < bestMST.size(); i++){
-        cout << bestMST[i].first << "->" << bestMST[i].second << endl; 
-    } 
-    cout << endl;
    
 }
 
