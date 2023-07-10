@@ -1,1 +1,2 @@
-obj/MasterProblem.o: src/MasterProblem.cpp src/MasterProblem.h src/Data.h
+obj/MasterProblem.o: src/MasterProblem.cpp src/MasterProblem.h src/Data.h \
+ src/Node.h

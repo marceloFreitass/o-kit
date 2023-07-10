@@ -86,7 +86,7 @@ void MasterProblem::showSolution(){
 
     cout << "A: {";
 
-    cout << A[0].size() << endl;
+    cout << A.size() << endl;
 
     cout << "Padroes utilizados: \n";
 
@@ -97,7 +97,7 @@ void MasterProblem::showSolution(){
                 cout << A[i][j] << ",";
                 sum += A[i][j];
             }
-            cout << "}" << "λ" << i << ": " << solver.getValue(lambda[i]) << endl;
+            cout << "}" << " λ" << i << ": " << solver.getValue(lambda[i]) << endl;
         }
         
     }
@@ -107,4 +107,20 @@ void MasterProblem::showSolution(){
     // }
 
     // cout << "Itens: " << sum << endl;
+}
+
+vector<vector<bool>> MasterProblem::getA(){return A;}
+double MasterProblem::getObjValue(){return solver.getObjValue();}
+
+vector<double> MasterProblem::getLambdasValues(){
+
+    int qntPatterns = A.size();
+    vector<double> lambdaValues(qntPatterns, 0);
+
+    for(int i = 0; i < qntPatterns; i++){
+        lambdaValues[i] = solver.getValue(lambda[i]);
+    }
+
+    return lambdaValues;
+
 }

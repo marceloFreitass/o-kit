@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Data.h"
+#include "Node.h"
 #include <vector>
 #include <ilcplex/ilocplex.h>
 #include <iostream>
@@ -29,10 +30,9 @@ class Subproblem{
     public:
 
         Subproblem(Data * data);
-        void setObjFunc(IloNumArray pi);
-        long double solve();
-        IloNumArray getXValues();
-
+        void setObjFunc(IloNumArray pi, Node* node);
+        long double solve(Node* node);
+        IloNumArray getXValues(Node* node);
 
 
 };

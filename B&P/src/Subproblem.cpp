@@ -10,83 +10,106 @@ Subproblem::Subproblem(Data * data){
     envSub = IloEnv();
 }
 
-void Subproblem::setObjFunc(IloNumArray pi){
+void Subproblem::setObjFunc(IloNumArray pi, Node * node){
     int n = data->getQuantItems();
 
     this->pi = pi;
-    
-        //MINKNAP
 
-    // profit = new long int[n];
-    // for(int i = 0; i < n; i++){
-    //     profit[i] = bigM * pi[i];
-    // }
-    
+    if(node->getType()){
+              //MINKNAP
 
-    //      MODELO
-    modelSub = IloModel(envSub);
-    x = IloBoolVarArray(envSub, n);
-    
-    IloExpr sumWeight(envSub);
-    for(int i = 0; i < n; i++){
-        sumWeight += data->getItemWeight(i) * x[i];
-    }
-    modelSub.add(sumWeight <= data->getBinCapacity());
+        profit = new long int[n];
+        for(int i = 0; i < n; i++){
+            profit[i] = bigM * pi[i];
+        }
 
-    IloExpr sum(envSub);
-
-    for(int i = 0; i < n; i++){
-        sum -= pi[i] * x[i];
     }
 
-    objFunc = IloMinimize(envSub, sum);
-    modelSub.add(objFunc);
+    else{
+    
+        //      MODELO
+        modelSub = IloModel(envSub);
+        x = IloBoolVarArray(envSub, n);
+        
+        IloExpr sumWeight(envSub);
+        for(int i = 0; i < n; i++){
+            sumWeight += data->getItemWeight(i) * x[i];
+        }
+        modelSub.add(sumWeight <= data->getBinCapacity());
+
+        IloExpr sum(envSub);
+
+        for(int i = 0; i < n; i++){
+            sum += pi[i] * x[i];
+        }
+
+        objFunc = IloMaximize(envSub, sum);
+        modelSub.add(objFunc);
+    }
    
 }
 
-long double Subproblem::solve(){
-    double sum = 0;
+long double Subproblem::solve(Node* node){
+    
     int n = data->getQuantItems();
     //MODELO
 
-    solver = IloCplex(modelSub);
-    solver.setOut(envSub.getNullStream());
-    solver.solve();
+    if(!node->getType()){
+        
+        solver = IloCplex(modelSub);
+        solver.setOut(envSub.getNullStream());
+        solver.solve();
 
-    return solver.getObjValue();
+        return solver.getObjValue();
+
+    }
+    else{
 
         //MINKNAP
-    // int *w = new int[n];
-    // xMinknap = new int[n];
+         double sum = 0;
+         int *w = new int[n];
+         xMinknap = new int[n];
 
-    // for(int i = 0; i < n; i++){
-    //     w[i] = data->getItemWeight(i);
-    // }
-    // long double z = minknap(n, profit, w, xMinknap, data->getBinCapacity());
-    // delete w;
-    // delete profit;
+         for(int i = 0; i < n; i++){
+             w[i] = data->getItemWeight(i);
+         }
+         long double z = minknap(n, profit, w, xMinknap, data->getBinCapacity());
+         delete w;
+         delete profit;
+        
+
+         for(int i = 0; i < n; i++){
+             sum += xMinknap[i] * pi[i];
+         }
+         return sum;
+
+    }
     
 
-    // for(int i = 0; i < n; i++){
-    //     sum += xMinknap[i] * pi[i];
-    // }
-    // return sum;
+
 }
 
-IloNumArray Subproblem::getXValues(){
+IloNumArray Subproblem::getXValues(Node* node){
 
     int n = data->getQuantItems();
     IloNumArray xValues(envSub, n);
 
-    //MODELO
-    solver.getValues(xValues, x);
+        //MODELO
+    if(!node->getType()){
+        solver.getValues(xValues, x);
+    }
+    else{
+        
+        // MINKNAP
 
-    // MINKNAP
+        for(int i = 0; i < n; i++){
+            xValues[i] = xMinknap[i];
+        }
+        delete xMinknap;        
+    }
+    
 
-    // for(int i = 0; i < n; i++){
-    //     xValues[i] = xMinknap[i];
-    // }
-    // delete xMinknap;
+    
 
     return xValues;
 }

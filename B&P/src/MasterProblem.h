@@ -3,6 +3,7 @@
 #include "Data.h"
 #include <ilcplex/ilocplex.h>
 #include <iostream>
+#include "Node.h"
 
 #define bigM 1000000
 #define EPSILON 0.00000001
@@ -31,8 +32,9 @@ class MasterProblem{
         IloNumArray getDuals();
         void addColumn(IloNumArray newColumn);
         void showSolution();
+        vector<double> getLambdasValues();
 
-
-
+        vector<vector<bool>> getA();
+        double getObjValue();
 
 };
