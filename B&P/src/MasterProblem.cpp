@@ -62,11 +62,11 @@ void MasterProblem::addColumn(IloNumArray newColumn){
         col += constraints[i](newColumn[i]);
         newBox.push_back(newColumn[i]);
     }
-    cout << "Nova caixa: {";
-    for(int i = 0; i < n; i++){
-        cout << newBox[i] << ",";
-    }
-    cout << "}\n";
+    // cout << "Nova caixa: {";
+    // for(int i = 0; i < n; i++){
+    //     cout << newBox[i] << ",";
+    // }
+    // cout << "}\n";
 
     IloNumVar newLambda(col, 0, IloInfinity);
     char varName[30];
@@ -102,5 +102,9 @@ void MasterProblem::showSolution(){
         
     }
 
-    cout << "Itens: " << sum << endl;
+    // for(int i = 0; i < A.size(); i++){
+    //     cout << "lambda: "  <<lambda[i] << endl;
+    // }
+
+    // cout << "Itens: " << sum << endl;
 }

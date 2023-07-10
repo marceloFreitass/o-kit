@@ -23,8 +23,8 @@ int main(int argc, char** argv){
     while(1){
         SP.setObjFunc(PM.getDuals());
         long double objValue = SP.solve();
-        
-        if(1- objValue <= -EPSILON){
+        if(1 + objValue <= -EPSILON){ //NO MINKNAP TROCA O SINAL
+            
             PM.addColumn(SP.getXValues());
             PM.solve();
         }
