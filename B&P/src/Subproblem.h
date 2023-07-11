@@ -16,23 +16,34 @@ class Subproblem{
     private:
 
         Data* data;
-        IloEnv envSub;
-        IloModel modelSub;
+        
+        
         IloNumArray pi;
-        IloBoolVarArray x;
+       
         IloObjective objFunc;
 
-        IloCplex solver;
+        
 
         long int* profit;
         int* xMinknap;
 
     public:
+        IloEnv envSub;
+        IloBoolVarArray x;
+        IloModel modelSub;
 
+
+        IloCplex solver;
+        
         Subproblem(Data * data);
         void setObjFunc(IloNumArray pi, Node* node);
         long double solve(Node* node);
         IloNumArray getXValues(Node* node);
+
+        IloModel getModel();
+        IloModel& getReferenceModel();
+        IloBoolVarArray getSubVariables();
+        IloBoolVarArray& getReferenceSubVariables();
 
 
 };

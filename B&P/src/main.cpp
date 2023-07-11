@@ -19,10 +19,11 @@ void BP(Data& data){
 
     Node root, bestNode;
     CG(PM, SP, &data, root);
-    //fazer instancia menor e testar
-    //ajeitar os lambda depois do branch, setando 0 se tiver sido proibido
+    SP.solver.exportModel("antes.lp");
+    PM.solver.exportModel("antesMestre.lp");
     // ver isso de recuperar os lambda
     //botar restricao no subproblema de acordo com o vector<pair>
+    //Criar um novo subproblema(resetar modelo sub)
     
     root.setFeasible();
 
@@ -34,7 +35,7 @@ void BP(Data& data){
         Node currentNode;
 
         currentNode = tree.back();
-        tree.erase(currentNode);
+        tree.pop_back();
 
         if(currentNode.getFeasible()){
             if(currentNode.getBins() < upperBound){
@@ -44,20 +45,37 @@ void BP(Data& data){
         }
 
         else{
-            pair<int, int> branchPair = getMostFractional(lambdaValues, A); //ajeita
+            pair<int, int> branchPair = getMostFractional(PM.getLambdasValues(), currentNode.getA()); //ajeita
             for(int i = 0; i < 2; i++){
 
 
-                Node newNode;
+                Node newNode(0);
+                newNode.setA(currentNode.getA());
                 newNode.setSeparatedPairs(currentNode.getSeparated());
                 newNode.setTogetherPairs(currentNode.getTogether());
 
                 if(i == 0){
-                    newNode.addSeparated(branchPair);
+                    newNode.addSeparatedPair(branchPair);
+                    setNodeRestrictions(&newNode, SP.getReferenceSubVariables(), SP.getReferenceModel(), PM.getVariables(), newNode.getA(), data, PM.getDuals(), SP);
+
+                    
                 }
+
                 else{
-                    newNode.addTogether(branchPair);
+                    newNode.addTogetherPair(branchPair);
+
                 }
+                //aq
+                if(i == 0){
+                    SP.solver.exportModel("Node1S.lp");
+                    cout << "AAAAAA\n";
+                    PM.solver.exportModel("Node1M.lp");
+                }
+                
+                else{
+                    //SP.solver.exportModel("Node2.lp");
+                }
+
             }
         }
 

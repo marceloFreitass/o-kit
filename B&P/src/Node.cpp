@@ -43,3 +43,5 @@ vector<pair<int, int>> Node::getTogether(){return together;}
 vector<pair<int, int>> Node::getSeparated(){return separated;}
 bool Node::getType(){return isRoot;}
 bool Node::getFeasible(){return feasible;}
+double Node::getBins(){return bins;}
+vector<vector<bool>> Node::getA(){return A;}

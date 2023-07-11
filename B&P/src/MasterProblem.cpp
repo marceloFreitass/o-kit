@@ -124,3 +124,5 @@ vector<double> MasterProblem::getLambdasValues(){
     return lambdaValues;
 
 }
+
+IloNumVarArray& MasterProblem::getVariables(){return lambda;}

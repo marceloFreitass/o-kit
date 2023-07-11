@@ -21,11 +21,12 @@ class MasterProblem{
         IloRangeArray constraints;
         IloObjective objFunc;
 
-        IloCplex solver;
-
+        
         vector<vector<bool>> A; // 1 se o item j ta no padrao i
 
     public:
+
+        IloCplex solver;
 
         MasterProblem(Data * data);
         void solve();
@@ -36,5 +37,7 @@ class MasterProblem{
 
         vector<vector<bool>> getA();
         double getObjValue();
+
+        IloNumVarArray& getVariables();
 
 };

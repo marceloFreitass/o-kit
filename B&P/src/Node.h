@@ -16,7 +16,6 @@ class Node{
 
 		vector<pair<int, int>> together;
 		vector<pair<int, int>> separated;
-		//vector<vector<bool>> A;
 		
 		bool feasible;
 		bool isRoot;
@@ -26,8 +25,6 @@ class Node{
 		
 		Node(bool isRoot);
 		Node();
-
-		pair<int, int> getPair();
 		
 		void setA(vector<vector<bool>> A);
 		void setTogetherPairs(vector<pair<int, int>> together);
@@ -42,4 +39,6 @@ class Node{
 		vector<pair<int, int>> getSeparated();
 		bool getType();
 		bool getFeasible();
+		double getBins();
+		vector<vector<bool>> getA();
 };

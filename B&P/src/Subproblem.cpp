@@ -8,6 +8,18 @@ Subproblem::Subproblem(Data * data){
     int n = data->getQuantItems();
 
     envSub = IloEnv();
+
+    modelSub = IloModel(envSub);
+    x = IloBoolVarArray(envSub, n);
+        
+    IloExpr sumWeight(envSub);
+    for(int i = 0; i < n; i++){
+        sumWeight += data->getItemWeight(i) * x[i];
+    }
+    modelSub.add(sumWeight <= data->getBinCapacity());
+    objFunc = IloMaximize(envSub);
+    modelSub.add(objFunc);
+    
 }
 
 void Subproblem::setObjFunc(IloNumArray pi, Node * node){
@@ -28,14 +40,7 @@ void Subproblem::setObjFunc(IloNumArray pi, Node * node){
     else{
     
         //      MODELO
-        modelSub = IloModel(envSub);
-        x = IloBoolVarArray(envSub, n);
-        
-        IloExpr sumWeight(envSub);
-        for(int i = 0; i < n; i++){
-            sumWeight += data->getItemWeight(i) * x[i];
-        }
-        modelSub.add(sumWeight <= data->getBinCapacity());
+
 
         IloExpr sum(envSub);
 
@@ -43,8 +48,10 @@ void Subproblem::setObjFunc(IloNumArray pi, Node * node){
             sum += pi[i] * x[i];
         }
 
-        objFunc = IloMaximize(envSub, sum);
-        modelSub.add(objFunc);
+        objFunc.setExpr(sum);
+        
+        
+        
     }
    
 }
@@ -105,12 +112,14 @@ IloNumArray Subproblem::getXValues(Node* node){
         for(int i = 0; i < n; i++){
             xValues[i] = xMinknap[i];
         }
+        solver.getValues(x, xValues);
         delete xMinknap;        
-    }
-    
-
-    
+    }    
 
     return xValues;
 }
+IloModel Subproblem::getModel(){return modelSub;}
+IloModel& Subproblem::getReferenceModel(){return modelSub;}
+IloBoolVarArray Subproblem::getSubVariables(){return x;}
+IloBoolVarArray& Subproblem::getReferenceSubVariables(){return x;}
 
