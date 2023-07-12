@@ -10,13 +10,34 @@ Node::Node(){
 	feasible = 0;
 }
 
+void Node::setLambdaValues(vector<double> lambdaValues){
+	this->lambdaValues = lambdaValues;
+}
+
 void Node::setBins(double bins){
 	this->bins = bins;
 }
 
 void Node::setFeasible(){
+	//cout << "ENTROU NO SET VIAVEL\n";
+	// cout << setprecision (15) << "CAIXAS: " << bins << endl;
+	// cout << "CAIXAS(int): " << (long int)bins << endl;
+	// cout << "CONTA: " << abs(bins - (long int)bins) << endl;
+	// feasible = (abs(bins - int(bins)) <= EPSILON); //Integer solution
+	// cout << "FEASIBLE: " << feasible << endl;
 
-	feasible = ((int)(bins) == bins); //Integer solution
+	int sumInt = 0;
+	double sum = 0;
+
+	for(int i = 0; i < lambdaValues.size(); i++){
+		sumInt += lambdaValues[i];
+		sum += lambdaValues[i];
+	}
+	//cout << "soma inteira: " << sumInt << endl;
+	//cout << "soma: " << sum << endl;
+
+	feasible = (abs(sumInt - sum) <= EPSILON);
+	//cout << "FEASIBLE: " << feasible << endl;
 }
 
 void Node::setA(vector<vector<bool>> A){
@@ -43,5 +64,6 @@ vector<pair<int, int>> Node::getTogether(){return together;}
 vector<pair<int, int>> Node::getSeparated(){return separated;}
 bool Node::getType(){return isRoot;}
 bool Node::getFeasible(){return feasible;}
-double Node::getBins(){return bins;}
+long double Node::getBins(){return bins;}
 vector<vector<bool>> Node::getA(){return A;}
+vector<double> Node::getLambdasValues(){return lambdaValues;}

@@ -2,10 +2,10 @@
 \Problem name: IloCplex
 
 Maximize
- obj1: 1000000 x1 + 1000000 x2 + x3 + x4 + x5
+ obj1: - 999999 x1 + 1000000 x2 + x3 + x4 + x5
 Subject To
  c1:  3 x1 + 4 x2 + 5 x3 + 8 x4 + 9 x5 <= 10
- c2:  x1 + x2 <= 1
+ c2:  x1 - x2  = 0
  c3:  x1 - x2  = 0
  c4:  x1 - x2  = 0
  c5:  x1 - x2  = 0
@@ -30,7 +30,6 @@ Subject To
  c24: x1 - x2  = 0
  c25: x1 - x2  = 0
  c26: x1 - x2  = 0
- c27: x1 - x2  = 0
 Bounds
  0 <= x1 <= 1
  0 <= x2 <= 1

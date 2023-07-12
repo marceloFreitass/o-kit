@@ -37,7 +37,10 @@ void MasterProblem::solve(){
     solver = IloCplex(model);
     solver.setOut(env.getNullStream());
     
+    
     solver.solve();
+
+    //cout << "STATUS: " << solver.getCplexStatus() << endl;
     
 }
 
@@ -45,10 +48,16 @@ IloNumArray MasterProblem::getDuals(){
     
     int n = data->getQuantItems();
     IloNumArray duals(env, n);
-
     for(int i = 0; i < n; i++){
+        try{
         duals[i] = solver.getDual(constraints[i]);
+        }
+        catch(IloException& e){
+            cout << "ERRO: " << e << endl;
+            e.end();
+        }
     }
+   
 
     return duals;
 }
@@ -113,12 +122,22 @@ vector<vector<bool>> MasterProblem::getA(){return A;}
 double MasterProblem::getObjValue(){return solver.getObjValue();}
 
 vector<double> MasterProblem::getLambdasValues(){
-
+    
     int qntPatterns = A.size();
     vector<double> lambdaValues(qntPatterns, 0);
 
     for(int i = 0; i < qntPatterns; i++){
+        try{
         lambdaValues[i] = solver.getValue(lambda[i]);
+        if(lambdaValues[i] > 0.9){
+            lambdaValues[i] = 1;
+        }
+        //cout << "λ" << i << ": " << lambdaValues[i] << endl;
+        }
+        catch(IloException& e){
+            cout << "ERRO: " << e << endl;
+            e.end();
+        }
     }
 
     return lambdaValues;

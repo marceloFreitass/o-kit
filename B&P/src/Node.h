@@ -2,8 +2,13 @@
 
 #include <vector>
 #include <utility>
-
+#include <iostream>
+#include <numeric>
+#include <iomanip>
 using namespace std;
+
+
+#define EPSILON 0.00000001
 
 
 class Node{
@@ -12,7 +17,8 @@ class Node{
 
 	private:
 		vector<vector<bool>> A;
-		double bins;
+		vector<double> lambdaValues;
+		long double bins;
 
 		vector<pair<int, int>> together;
 		vector<pair<int, int>> separated;
@@ -26,6 +32,7 @@ class Node{
 		Node(bool isRoot);
 		Node();
 		
+		void setLambdaValues(vector<double> lambdaValues);
 		void setA(vector<vector<bool>> A);
 		void setTogetherPairs(vector<pair<int, int>> together);
 		void setSeparatedPairs(vector<pair<int, int>> separated);
@@ -39,6 +46,7 @@ class Node{
 		vector<pair<int, int>> getSeparated();
 		bool getType();
 		bool getFeasible();
-		double getBins();
+		long double getBins();
 		vector<vector<bool>> getA();
+		vector<double> getLambdasValues();
 };

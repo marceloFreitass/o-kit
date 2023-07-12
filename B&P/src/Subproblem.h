@@ -6,7 +6,7 @@
 #include <ilcplex/ilocplex.h>
 #include <iostream>
 
-#define EPSILON 0.00000001
+#define EPSILON 0.000001
 #define bigM 1000000
 
 using namespace std;
