@@ -19,25 +19,14 @@ void Node::setBins(double bins){
 }
 
 void Node::setFeasible(){
-	//cout << "ENTROU NO SET VIAVEL\n";
-	// cout << setprecision (15) << "CAIXAS: " << bins << endl;
-	// cout << "CAIXAS(int): " << (long int)bins << endl;
-	// cout << "CONTA: " << abs(bins - (long int)bins) << endl;
-	// feasible = (abs(bins - int(bins)) <= EPSILON); //Integer solution
-	// cout << "FEASIBLE: " << feasible << endl;
 
 	int sumInt = 0;
-	double sum = 0;
-
 	for(int i = 0; i < lambdaValues.size(); i++){
-		sumInt += lambdaValues[i];
-		sum += lambdaValues[i];
+		sumInt += lambdaValues[i];	
 	}
-	//cout << "soma inteira: " << sumInt << endl;
-	//cout << "soma: " << sum << endl;
-
-	feasible = (abs(sumInt - sum) <= EPSILON);
-	//cout << "FEASIBLE: " << feasible << endl;
+	cout << "soma inteira: " << sumInt << endl;
+	cout << "Bins: " << bins << endl;
+	feasible = (abs(sumInt - bins) < EPSILON);
 }
 
 void Node::setA(vector<vector<bool>> A){

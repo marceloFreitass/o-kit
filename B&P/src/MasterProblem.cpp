@@ -37,10 +37,10 @@ void MasterProblem::solve(){
     solver = IloCplex(model);
     solver.setOut(env.getNullStream());
     
-    
-    solver.solve();
 
-    //cout << "STATUS: " << solver.getCplexStatus() << endl;
+    solver.solve();
+    cout << "STATUS MESTRE: " << solver.getCplexStatus() << endl;
+
     
 }
 
@@ -71,11 +71,6 @@ void MasterProblem::addColumn(IloNumArray newColumn){
         col += constraints[i](newColumn[i]);
         newBox.push_back(newColumn[i]);
     }
-    // cout << "Nova caixa: {";
-    // for(int i = 0; i < n; i++){
-    //     cout << newBox[i] << ",";
-    // }
-    // cout << "}\n";
 
     IloNumVar newLambda(col, 0, IloInfinity);
     char varName[30];
@@ -85,7 +80,6 @@ void MasterProblem::addColumn(IloNumArray newColumn){
     lambda.add(newLambda);
 
     A.push_back(newBox);
-    //solver.exportModel("codigoAgora.lp");
 
 }
 
@@ -110,12 +104,6 @@ void MasterProblem::showSolution(){
         }
         
     }
-
-    // for(int i = 0; i < A.size(); i++){
-    //     cout << "lambda: "  <<lambda[i] << endl;
-    // }
-
-    // cout << "Itens: " << sum << endl;
 }
 
 vector<vector<bool>> MasterProblem::getA(){return A;}
@@ -128,11 +116,10 @@ vector<double> MasterProblem::getLambdasValues(){
 
     for(int i = 0; i < qntPatterns; i++){
         try{
-        lambdaValues[i] = solver.getValue(lambda[i]);
-        if(lambdaValues[i] > 0.9){
-            lambdaValues[i] = 1;
-        }
-        //cout << "λ" << i << ": " << lambdaValues[i] << endl;
+            lambdaValues[i] = solver.getValue(lambda[i]);
+            if(lambdaValues[i] > 0.9){
+                lambdaValues[i] = 1;
+            }
         }
         catch(IloException& e){
             cout << "ERRO: " << e << endl;

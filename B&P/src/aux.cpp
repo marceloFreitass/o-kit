@@ -1,18 +1,15 @@
 #include "aux.h"
 
-void CG(MasterProblem& PM, Subproblem& SP, Data * data, Node& node){
+void CG(MasterProblem& PM, Subproblem& SP, Node& node){
 
     
     PM.solve();
-
-    // SP.setObjFunc(PM.getDuals());
-    // SP.solve();
     
     while(1){
         SP.setObjFunc(PM.getDuals(), &node);
 
         long double objValue = SP.solve(&node);
-        if(1 - objValue <= -EPSILON){ //NO MINKNAP TROCA O SINAL
+        if(1 - objValue <= -EPSILON){
             
             PM.addColumn(SP.getXValues(&node));
             PM.solve();
@@ -26,11 +23,9 @@ void CG(MasterProblem& PM, Subproblem& SP, Data * data, Node& node){
     node.setA(PM.getA());
     //PM.showSolution();
     node.setBins(PM.getObjValue());
-    
     node.setLambdaValues(PM.getLambdasValues());
     node.setFeasible();
-    //cout << "Z\n";
-    //pair<int, int> sla = getMostFractional(PM.getLambdasValues(), PM.getA());
+
 }
 
 pair<int, int> getMostFractional(vector<double> lambdaValues, vector<vector<bool>> A){
@@ -41,8 +36,6 @@ pair<int, int> getMostFractional(vector<double> lambdaValues, vector<vector<bool
 
     double mostFractionalValue = 0;
     pair<int, int> selectedPair;
-
-   
 
     vector<vector<double>> pairValues(itemsSize, vector<double>(itemsSize, 0));
 
@@ -61,16 +54,6 @@ pair<int, int> getMostFractional(vector<double> lambdaValues, vector<vector<bool
         }
     }
 
-    // cout << "Pair values: \n";
-
-    // for(int i = 0; i < itemsSize; i++){
-    //     for(int j = 0; j < itemsSize; j++){
-    //         cout << pairValues[i][j] << " ";
-    //     }
-    //     cout << endl;
-    // }
-    // cout << endl;
-
     for(int i = 0; i < itemsSize - 1; i++){
         for(int j = i + 1; j < itemsSize; j++){
             if(i == 0 && j == 1){
@@ -87,7 +70,8 @@ pair<int, int> getMostFractional(vector<double> lambdaValues, vector<vector<bool
         }
     }
 
-    //cout << "selectedPair: {" << selectedPair.first << "," << selectedPair.second << "}\n";
+    cout << "Fracional: " << pairValues[selectedPair.first][selectedPair.second] << endl;
+
     return selectedPair;
 
 }
@@ -105,7 +89,6 @@ void setTogetherRestrictions(Node* node, IloBoolVarArray& x, IloModel& modelSub,
 
         for(int j = qntItems; j < qntPatterns; j++){
             if(A[j][pairs[i].first] && !A[j][pairs[i].second] || !A[j][pairs[i].first] && A[j][pairs[i].second]){
-                //cout << "λ" << j << " PROIBIDO\n";
                 lambda[j].setUB(0);
             }
         }
@@ -118,23 +101,11 @@ void setSeparatedRestrictions(Node* node, IloBoolVarArray& x, IloModel& modelSub
     int n = pairs.size();
     int qntItems = A[0].size();
     int qntPatterns = A.size();
-
-    // cout << "A: \n";
-    // for(int i = 0; i < A.size(); i++){
-    //     cout << "{";
-    //     for(int j = 0; j < A[i].size(); j++){
-    //         cout << A[i][j] << ",";
-    //     }
-    //     cout << "}\n";
-    // }
-    // cout << endl;
-
     
     for(int i = 0; i < n; i++){
         modelSub.add(x[pairs[i].first] + x[pairs[i].second] <= 1);
         for(int j = qntItems; j < qntPatterns; j++){
             if(A[j][pairs[i].first] && A[j][pairs[i].second]){
-               // cout << "λ" << j << " PROIBIDO\n";
                 lambda[j].setUB(0);
             }
         }
@@ -144,7 +115,7 @@ void setSeparatedRestrictions(Node* node, IloBoolVarArray& x, IloModel& modelSub
 
 }
 
-void setNodeRestrictions(Node* node, IloBoolVarArray& x, IloModel& modelSub, IloNumVarArray& lambda, vector<vector<bool>> A, Data& data){
+void setNodeRestrictions(Node* node, IloBoolVarArray& x, IloModel& modelSub, IloNumVarArray& lambda, vector<vector<bool>> A){
     
     setSeparatedRestrictions(node, x, modelSub, lambda, A);
     setTogetherRestrictions(node, x, modelSub, lambda, A);

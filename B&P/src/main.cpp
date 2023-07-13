@@ -6,13 +6,13 @@
 #include <iostream>
 #include <chrono>
 #include <utility>
-
+#include <cmath>
 #define EPSILON 0.00000001
 
 using namespace std;
 
 void BP(Data& data){
-    double upperBound = INFINITY;
+    double upperBound = data.getQuantItems() + 1;
 
     MasterProblem PM(&data);
     Subproblem SP(&data);
@@ -21,7 +21,7 @@ void BP(Data& data){
 
     Node root(1);
     Node bestNode;
-    CG(PM, SP, &data, root);
+    CG(PM, SP, root);
     //SP.solver.exportModel("antes.lp");
     //PM.solver.exportModel("antesMestre.lp");
     //cout << "EXPORTOU MODELO INICIAL\n\n";
@@ -36,7 +36,7 @@ void BP(Data& data){
         Node currentNode;
 
         currentNode = tree.back();
-        tree.erase(tree.end());
+        tree.pop_back();
         // cout << "ESCOLHEU OUTRO NO\n";
         // cout << "CAIXAS NO: " << currentNode.getBins() << endl;
         // cout << "VIAVEL: " << currentNode.getFeasible() << endl;
@@ -66,25 +66,28 @@ void BP(Data& data){
                 }
                 
                 Subproblem newSP(&data);
-                setNodeRestrictions(&newNode, newSP.getReferenceSubVariables(), newSP.getReferenceModel(), PM.getVariables(), newNode.getA(), data);
-                CG(PM, newSP, &data, newNode);
-                if(upperBound - newNode.getBins() - 1>= EPSILON){
-                    //cout << "ADD\n";
+                setNodeRestrictions(&newNode, newSP.getReferenceSubVariables(), newSP.getReferenceModel(), PM.getVariables(), newNode.getA());
+                CG(PM, newSP, newNode);
+                cout << "LB: " << newNode.getBins() << endl;
+                cout << "FEASIBLE: " << newNode.getFeasible() << endl; 
+                cout << "UB: " << upperBound << endl;
+
+                if(newNode.getFeasible()){
+                    if(newNode.getBins() < upperBound){
+                    cout << "NOVO UPPERBOUND\n";
+                    bestNode = newNode;
+                    upperBound = newNode.getBins();
+                    continue;
+                    }
+                }
+                if(upperBound - currentNode.getBins() > 1 + EPSILON){
+                    cout << "ADD\n";
                     tree.push_back(newNode);
                 }
-                if(i == 0){
-                    // newSP.solver.exportModel("Node1S.lp");
-                    // cout << "AAAAAA\n";
-                    // PM.solver.exportModel("Node1M.lp");
-                }
-                
-                else{
-                    // newSP.solver.exportModel("Node2S.lp");
-                    // PM.solver.exportModel("Node2M.lp");
-                }
+
                 resetLambda(PM.getVariables());
-                PM.solver.clear();
-                PM.solver.end();
+                // PM.solver.clear();
+                // PM.solver.end();
                 //cout << "Resetou\n";
 
             }
@@ -97,23 +100,38 @@ void BP(Data& data){
             }
         }
 
+        cout << "ARVORE: " << tree.size() << endl;
+
     }
 
-    // vector<vector<bool>> bestPatterns = bestNode.getA();
-    // cout << "TAMANHO DE A: " << bestPatterns.size() << endl;
-    // for(int i = 0; i < bestPatterns.size(); i++){
-    //     if(bestNode.getLambdasValues()[i] == 1){
-    //         cout << "{";
-    //         for(int j = 0; j < bestPatterns[i].size(); j++){
-    //             cout << bestPatterns[i][j] << ",";
-    //         }
-    //         cout << "} " << bestNode.getLambdasValues()[i] << "\n";
-    //     }
+    int cont = 0;
+    int items = 0;
+    cout << "\nSOLUCAO\n\n";
+    vector<vector<bool>> bestPatterns = bestNode.getA();
+    for(int i = 0; i < bestPatterns.size(); i++){
+        if(bestNode.getLambdasValues()[i] == 1){
+            cout << "CAIXA " << cont + 1 << ": ";
+            for(int j = 0; j < data.getQuantItems(); j++){
+                if(bestPatterns[i][j]){
+                    cout << j + 1 << " ";
+                    items++;
+                }
+            }
+            cont++;
+            cout << endl;
+        }
+        
 
-    // }
-    // cout << endl;
+    }
+    cout << endl;
 
     cout << "Quantidade de caixas: " << bestNode.getBins() << endl;
+    if(items == data.getQuantItems()){
+        cout << "SOLUCAO VIAVEL!\n";
+    }
+    else{
+        cout << "INVIAVEL.\n";
+    }
 
 }
 

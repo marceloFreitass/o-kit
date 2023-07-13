@@ -65,7 +65,7 @@ long double Subproblem::solve(Node* node){
         solver.setOut(envSub.getNullStream());
 
         solver.solve();
-
+        cout << "STATUS SUB: " << solver.getCplexStatus() << endl;
         return solver.getObjValue();
 
     }
@@ -105,14 +105,6 @@ IloNumArray Subproblem::getXValues(Node* node){
 
         solver.getValues(xValues, x);
 
-        for(int i = 0; i < n; i++){
-            if(xValues[i] > 0.9){
-                xValues[i] = 1;
-            }
-            else{
-                xValues[i] = 0;
-            }
-        }
     }
     else{
 
