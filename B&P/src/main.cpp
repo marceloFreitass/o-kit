@@ -22,12 +22,10 @@ void BP(Data& data){
     Node root(1);
     Node bestNode;
     CG(PM, SP, root);
+    cout << root.getBins() << endl;
     //SP.solver.exportModel("antes.lp");
     //PM.solver.exportModel("antesMestre.lp");
     //cout << "EXPORTOU MODELO INICIAL\n\n";
-    // ver isso de recuperar os lambda
-    //botar restricao no subproblema de acordo com o vector<pair>
-    //Criar um novo subproblema(resetar modelo sub)
     
 
     tree.push_back(root);
@@ -35,11 +33,11 @@ void BP(Data& data){
 
         Node currentNode;
 
+
         currentNode = tree.back();
         tree.pop_back();
-        // cout << "ESCOLHEU OUTRO NO\n";
-        // cout << "CAIXAS NO: " << currentNode.getBins() << endl;
-        // cout << "VIAVEL: " << currentNode.getFeasible() << endl;
+        cout << "LB: " << currentNode.getBins() << endl;
+
 
         if(!currentNode.getFeasible()){
             pair<int, int> branchPair = getMostFractional(currentNode.getLambdasValues(), currentNode.getA()); //ajeita
@@ -52,8 +50,8 @@ void BP(Data& data){
                 newNode.setTogetherPairs(currentNode.getTogether());
                 
                 if(i == 0){
-                    newNode.addTogetherPair(branchPair);
-                    // << "---PAR JUNTO---\n\n";
+                    newNode.addSeparatedPair(branchPair);
+                    // << "---PAR SEPARADO---\n\n";
                     
                     //setNodeRestrictions(&newNode, SP.getReferenceSubVariables(), SP.getReferenceModel(), PM.getVariables(), newNode.getA(), data, PM.getDuals(), SP);
                     
@@ -61,23 +59,25 @@ void BP(Data& data){
 
                 else{
                     
-                    newNode.addSeparatedPair(branchPair);
-                   // cout << "---PAR SEPARADO---\n\n";
+                    
+                    newNode.addTogetherPair(branchPair);
+                   // cout << "---PAR JUNTO---\n\n";
                 }
                 
                 Subproblem newSP(&data);
+                
                 setNodeRestrictions(&newNode, newSP.getReferenceSubVariables(), newSP.getReferenceModel(), PM.getVariables(), newNode.getA());
+                
                 CG(PM, newSP, newNode);
-                cout << "LB: " << newNode.getBins() << endl;
-                cout << "FEASIBLE: " << newNode.getFeasible() << endl; 
-                cout << "UB: " << upperBound << endl;
+                resetLambda(PM.getVariables());
 
+                
                 if(newNode.getFeasible()){
                     if(newNode.getBins() < upperBound){
-                    cout << "NOVO UPPERBOUND\n";
-                    bestNode = newNode;
-                    upperBound = newNode.getBins();
-                    continue;
+                    //cout << "NOVO UPPERBOUND\n";
+                        bestNode = newNode;
+                        upperBound = newNode.getBins();
+                        continue;
                     }
                 }
                 if(upperBound - currentNode.getBins() > 1 + EPSILON){
@@ -85,18 +85,19 @@ void BP(Data& data){
                     tree.push_back(newNode);
                 }
 
-                resetLambda(PM.getVariables());
-                // PM.solver.clear();
-                // PM.solver.end();
+                
+                PM.solver.clear();
+                PM.solver.end();
                 //cout << "Resetou\n";
 
             }
         }
         else{
             if(currentNode.getBins() < upperBound){
-                //cout << "NOVO UPPERBOUND\n";
-                bestNode = currentNode;
-                upperBound = currentNode.getBins();
+            //cout << "NOVO UPPERBOUND\n";
+            bestNode = currentNode;
+            upperBound = currentNode.getBins();
+            //continue;
             }
         }
 

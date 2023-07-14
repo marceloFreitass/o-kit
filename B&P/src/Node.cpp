@@ -10,7 +10,7 @@ Node::Node(){
 	feasible = 0;
 }
 
-void Node::setLambdaValues(vector<double> lambdaValues){
+void Node::setLambdaValues(IloNumArray lambdaValues){
 	this->lambdaValues = lambdaValues;
 }
 
@@ -21,12 +21,15 @@ void Node::setBins(double bins){
 void Node::setFeasible(){
 
 	int sumInt = 0;
-	for(int i = 0; i < lambdaValues.size(); i++){
+	int n = lambdaValues.getSize();
+	for(int i = 0; i < n; i++){
+		if(lambdaValues[i] > 0.9){
+			lambdaValues[i] = 1;
+		}
 		sumInt += lambdaValues[i];	
 	}
-	cout << "soma inteira: " << sumInt << endl;
-	cout << "Bins: " << bins << endl;
-	feasible = (abs(sumInt - bins) < EPSILON);
+
+	feasible = (abs(sumInt - bins) <= EPSILON);
 }
 
 void Node::setA(vector<vector<bool>> A){
@@ -55,4 +58,4 @@ bool Node::getType(){return isRoot;}
 bool Node::getFeasible(){return feasible;}
 long double Node::getBins(){return bins;}
 vector<vector<bool>> Node::getA(){return A;}
-vector<double> Node::getLambdasValues(){return lambdaValues;}
+IloNumArray Node::getLambdasValues(){return lambdaValues;}

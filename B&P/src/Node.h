@@ -5,6 +5,8 @@
 #include <iostream>
 #include <numeric>
 #include <iomanip>
+#include <ilcplex/ilocplex.h>
+
 using namespace std;
 
 
@@ -17,7 +19,7 @@ class Node{
 
 	private:
 		vector<vector<bool>> A;
-		vector<double> lambdaValues;
+		IloNumArray lambdaValues;
 		long double bins;
 
 		vector<pair<int, int>> together;
@@ -32,7 +34,7 @@ class Node{
 		Node(bool isRoot);
 		Node();
 		
-		void setLambdaValues(vector<double> lambdaValues);
+		void setLambdaValues(IloNumArray lambdaValues);
 		void setA(vector<vector<bool>> A);
 		void setTogetherPairs(vector<pair<int, int>> together);
 		void setSeparatedPairs(vector<pair<int, int>> separated);
@@ -48,5 +50,5 @@ class Node{
 		bool getFeasible();
 		long double getBins();
 		vector<vector<bool>> getA();
-		vector<double> getLambdasValues();
+		IloNumArray getLambdasValues();
 };

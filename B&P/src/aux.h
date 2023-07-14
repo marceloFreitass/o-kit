@@ -1,4 +1,4 @@
-#pragma once;
+#pragma once
 
 #include "Data.h"
 #include "MasterProblem.h"
@@ -9,7 +9,7 @@
 #include <utility>
 
 extern void CG(MasterProblem& PM, Subproblem& SP, Node& node);
-extern pair<int, int> getMostFractional(vector<double> lambdaValues, vector<vector<bool>> A);
+extern pair<int, int> getMostFractional(IloNumArray lambdaValues, vector<vector<bool>> A);
 extern void setTogetherRestrictions(Node* node, IloBoolVarArray& x, IloModel& modelSub, IloNumVarArray& lambda, vector<vector<bool>> A);
 extern void setSeparatedRestrictions(Node* node, IloBoolVarArray& x, IloModel& modelSub, IloNumVarArray& lambda, vector<vector<bool>> A);
 extern void setNodeRestrictions(Node* node, IloBoolVarArray& x, IloModel& modelSub, IloNumVarArray& lambda, vector<vector<bool>> A);

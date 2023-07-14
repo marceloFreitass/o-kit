@@ -31,9 +31,9 @@ class MasterProblem{
         MasterProblem(Data * data);
         void solve();
         IloNumArray getDuals();
-        void addColumn(IloNumArray newColumn);
+        void addColumn(vector<bool> newColumn);
         void showSolution();
-        vector<double> getLambdasValues();
+        IloNumArray getLambdasValues();
 
         vector<vector<bool>> getA();
         double getObjValue();

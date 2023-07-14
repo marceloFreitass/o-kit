@@ -30,6 +30,8 @@ MasterProblem::MasterProblem(Data * data){
     for(int i = 0; i < n; i++){
         A[i][i] = true;
     }
+
+    sum.end();
 }
 
 void MasterProblem::solve(){
@@ -39,8 +41,8 @@ void MasterProblem::solve(){
     
 
     solver.solve();
-    cout << "STATUS MESTRE: " << solver.getCplexStatus() << endl;
-
+    //cout << "STATUS MESTRE: " << solver.getCplexStatus() << endl;
+    
     
 }
 
@@ -62,24 +64,32 @@ IloNumArray MasterProblem::getDuals(){
     return duals;
 }
 
-void MasterProblem::addColumn(IloNumArray newColumn){
+void MasterProblem::addColumn(vector<bool> newColumn){
     int n = data->getQuantItems();
-    vector<bool> newBox;
     IloNumColumn col = objFunc(1);
     
     for(int i = 0; i < n; i++){
-        col += constraints[i](newColumn[i]);
-        newBox.push_back(newColumn[i]);
+        if(newColumn[i]){
+            col += constraints[i](newColumn[i]);
+        }
+        
+        
     }
+    // cout << "NOVA CAIXA: {";
 
-    IloNumVar newLambda(col, 0, IloInfinity);
+    // for(int i = 0; i < newColumn.size(); i++){
+    //     cout << newColumn[i] << ",";
+    // }
+    // cout << "}\n";
+
+    IloNumVar newLambda(col, 0.0, IloInfinity);
     char varName[30];
     sprintf(varName, "λ%d", lambda.getSize());
     newLambda.setName(varName);
 
     lambda.add(newLambda);
 
-    A.push_back(newBox);
+    A.push_back(newColumn);
 
 }
 
@@ -109,23 +119,25 @@ void MasterProblem::showSolution(){
 vector<vector<bool>> MasterProblem::getA(){return A;}
 double MasterProblem::getObjValue(){return solver.getObjValue();}
 
-vector<double> MasterProblem::getLambdasValues(){
+IloNumArray MasterProblem::getLambdasValues(){
     
     int qntPatterns = A.size();
-    vector<double> lambdaValues(qntPatterns, 0);
+    //vector<double> lambdaValues(qntPatterns, 0);
+    IloNumArray lambdaValues(env, qntPatterns);
 
-    for(int i = 0; i < qntPatterns; i++){
-        try{
-            lambdaValues[i] = solver.getValue(lambda[i]);
-            if(lambdaValues[i] > 0.9){
-                lambdaValues[i] = 1;
-            }
-        }
-        catch(IloException& e){
-            cout << "ERRO: " << e << endl;
-            e.end();
-        }
-    }
+    solver.getValues(lambdaValues, lambda);
+    // for(int i = 0; i < qntPatterns; i++){
+    //     try{
+    //         lambdaValues[i] = solver.getValue(lambda[i]);
+    //         if(lambdaValues[i] >= 1 - EPSILON){
+    //             lambdaValues[i] = 1;
+    //         }
+    //     }
+    //     catch(IloException& e){
+    //         cout << "ERRO: " << e << endl;
+    //         e.end();
+    //     }
+    // }
 
     return lambdaValues;
 

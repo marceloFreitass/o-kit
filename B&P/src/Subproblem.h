@@ -6,7 +6,7 @@
 #include <ilcplex/ilocplex.h>
 #include <iostream>
 
-#define EPSILON 0.000001
+#define EPSILON 0.00000001
 #define bigM 1000000
 
 using namespace std;
@@ -37,8 +37,8 @@ class Subproblem{
         
         Subproblem(Data * data);
         void setObjFunc(IloNumArray pi, Node* node);
-        long double solve(Node* node);
-        IloNumArray getXValues(Node* node);
+        double solve(Node* node);
+        vector<bool> getXValues(Node* node);
 
         IloModel getModel();
         IloModel& getReferenceModel();

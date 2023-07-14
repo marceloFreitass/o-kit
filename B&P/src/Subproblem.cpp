@@ -27,7 +27,11 @@ void Subproblem::setObjFunc(IloNumArray pi, Node * node){
     int n = data->getQuantItems();
 
     this->pi = pi;
-
+    // cout << "DUAIS: {";
+    // for(int i = 0; i < n; i++){
+    //     cout << pi[i] << ",";
+    // }
+    // cout << "}\n";
     if(node->getType()){
               //MINKNAP
 
@@ -43,18 +47,17 @@ void Subproblem::setObjFunc(IloNumArray pi, Node * node){
         //      MODELO
 
         IloExpr sum(envSub);
-
         for(int i = 0; i < n; i++){
             sum += pi[i] * x[i];
         }
-
+       
         objFunc.setExpr(sum);
         
     }
    
 }
 
-long double Subproblem::solve(Node* node){
+double Subproblem::solve(Node* node){
     
     int n = data->getQuantItems();
     //MODELO
@@ -64,9 +67,15 @@ long double Subproblem::solve(Node* node){
         solver = IloCplex(modelSub);
         solver.setOut(envSub.getNullStream());
 
+        solver.setParam(IloCplex::Param::TimeLimit, 2*60);
+        solver.setParam(IloCplex::Param::Threads, 1);
+        solver.setParam(IloCplex::Param::MIP::Tolerances::MIPGap, 1e-08);
+
         solver.solve();
-        cout << "STATUS SUB: " << solver.getCplexStatus() << endl;
-        return solver.getObjValue();
+        double value = solver.getObjValue();
+        //cout << "STATUS SUB: " << solver.getCplexStatus() << endl;
+
+        return value;
 
     }
     else{
@@ -84,26 +93,37 @@ long double Subproblem::solve(Node* node){
          delete profit;
         
 
-         for(int i = 0; i < n; i++){
-             sum += xMinknap[i] * pi[i];
-         }
-         return sum;
+        //  for(int i = 0; i < n; i++){
+        //      sum += xMinknap[i] * pi[i];
+        //  }
+         pi.clear();
+         pi.end();
+         return z / bigM;
 
     }
+    
     
 
 
 }
 
-IloNumArray Subproblem::getXValues(Node* node){
+vector<bool> Subproblem::getXValues(Node* node){
     
     int n = data->getQuantItems();
-    IloNumArray xValues(envSub, n);
+    vector<bool> xValues(n, 0);
 
         //MODELO
     if(!node->getType()){
 
-        solver.getValues(xValues, x);
+
+        for(int i = 0; i < n; i++){
+            if(solver.getValue(x[i]) >= 0.9 - EPSILON){
+                xValues[i] = 1;
+            }
+            else{
+                xValues[i] = 0;
+            }
+        }
 
     }
     else{
@@ -112,7 +132,7 @@ IloNumArray Subproblem::getXValues(Node* node){
 
         for(int i = 0; i < n; i++){
             xValues[i] = xMinknap[i];
-            x[i].setLB(xMinknap[i]);
+            //x[i].setLB(xMinknap[i]);
         }
         delete xMinknap;        
     }    
