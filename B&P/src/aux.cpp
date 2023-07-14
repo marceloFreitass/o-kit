@@ -93,7 +93,7 @@ void setTogetherRestrictions(Node* node, IloBoolVarArray& x, IloModel& modelSub,
 
         for(int j = qntItems; j < qntPatterns; j++){
             if(A[j][pairs[i].first] && !A[j][pairs[i].second] || !A[j][pairs[i].first] && A[j][pairs[i].second]){
-                lambda[j].setUB(0.0);
+                lambda[j].setUB(0);
             }
         }
     }
@@ -110,7 +110,7 @@ void setSeparatedRestrictions(Node* node, IloBoolVarArray& x, IloModel& modelSub
         modelSub.add(x[pairs[i].first] + x[pairs[i].second] <= 1);
         for(int j = qntItems; j < qntPatterns; j++){
             if(A[j][pairs[i].first] && A[j][pairs[i].second]){
-                lambda[j].setUB(0.0);
+                lambda[j].setUB(0);
             }
         }
     }
