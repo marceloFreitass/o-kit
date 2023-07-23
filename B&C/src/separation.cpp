@@ -31,7 +31,7 @@ bool checkChosed(vector<bool> chosed){
             sum++;
         }
     }
-    return sum >= ((n/2) + 1);
+    return sum == n;
 }
 
 
@@ -111,7 +111,7 @@ vector<vector<int>> MaxBack(double** x, int n){
         vector<bool> inS(n, 0);
         S0.push_back(v);
         alreadyChosed[v] = 1;
-        updateBool(inS, S0);
+        inS[v] = 1;
 
         cutMin = sumWeights(v, inS, x, 0); //sum all weights between v and all vertices that are not in S0
         cutVal = cutMin;
@@ -122,16 +122,19 @@ vector<vector<int>> MaxBack(double** x, int n){
 
             double maximumMaxBackValue;
             v = maximumMaxBack(inS, x, maximumMaxBackValue);
-
+            
             S0.push_back(v);
-            updateBool(inS, S0);
+            inS[v] = 1;
 
             cutVal += 2 - 2* maximumMaxBackValue;
             if(cutVal < cutMin){
+                
                 cutMin = cutVal;
                 Smin = S0;
             }
         }
+
+        updateBool(alreadyChosed, Smin);
 
         if(Smin.size() == n){
             break;
@@ -321,6 +324,7 @@ double MinCutPhase(vector<vector<int>>& V, double **x, int n, int a, int& last1,
     if(value < 2 - EPSILON){ //getting the smaller subtour(less constraints) set
         if(V[indSet1].size() <= n/2){
             set = V[indSet1];
+            
         }
         else{
             set = getComplement(V[indSet1], n);
